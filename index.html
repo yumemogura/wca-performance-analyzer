@@ -355,29 +355,10 @@
 
       <section id="report" class="hidden" aria-label="分析レポート"></section>
 
-      <section class="card" aria-label="利用状況の割合について" id="usageSection">
-        <h2 id="usageTitle">利用状況の割合について</h2>
-        <p class="hint" style="margin-bottom:10px" id="usageIntro">検索がどう終わったかは、結果の種類ごとに固定の合図だけを送って数えています。割合は作成者だけが見られる GoatCounter の集計から、次のように出します。ページ自体に数値は表示されません。</p>
-        <div class="sess-wrap">
-          <table class="sess-table">
-            <thead><tr><th id="usageThCat">区分</th><th id="usageThCount">数え方</th><th id="usageThRatio">割合の出し方</th></tr></thead>
-            <tbody id="usageBody">
-              <tr><td><strong>閲覧</strong></td><td>ページが開かれた回数</td><td>—（分母）</td></tr>
-              <tr><td><strong>検索を実行</strong></td><td>「公式記録を取得」が押された回数（合図: <span class="num">search</span>）</td><td>検索実行 ÷ 閲覧</td></tr>
-              <tr><td><strong>検索が成功</strong></td><td>公式記録が取得できた回数（合図: <span class="num">search-success</span>）</td><td>成功 ÷ 検索実行</td></tr>
-              <tr><td><strong>エラーで終了</strong></td><td>見つからない／記録なし／通信失敗で終わった回数（合図: <span class="num">search-error</span>）</td><td>エラー ÷ 検索実行</td></tr>
-              <tr><td><strong>形式エラーで終了</strong></td><td>WCA IDの形式が違って実行できなかった回数（合図: <span class="num">search-invalid</span>）</td><td>形式エラー ÷ 検索実行</td></tr>
-              <tr><td><strong>開いただけで何もしなかった</strong></td><td>閲覧のうち検索を実行しなかった分（目安）</td><td>（閲覧 − 検索実行）÷ 閲覧</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="hint" style="margin-top:10px;margin-bottom:0" id="usageNote">成功＋エラー＋形式エラーが検索実行と一致するのが目安です。「何もしなかった」は、同じ人が複数回検索したり再読み込みしたりすると多少ずれるため目安として扱います。毎日の報告では、この区分で閲覧数に対する割合と、検索実行に対する成功／エラーの割合を併記できます。</p>
-      </section>
-
       <p class="foot" id="footText">
         公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
         練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />
-        利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。各割合の出し方は上の「利用状況の割合について」をご覧ください。<br />
+        利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。<br />
         作成者　ゆめもぐら
       </p>
     </main>
@@ -1130,27 +1111,9 @@
         el("sessThCount").textContent = L("試技数", "Attempts");
         el("sessThEvent").textContent = L("対応する種目", "Mapped event");
         el("genBtn").textContent = L("レポートを作成", "Generate report");
-        el("usageSection").setAttribute("aria-label", L("利用状況の割合について", "About the usage ratios"));
-        el("usageTitle").textContent = L("利用状況の割合について", "About the usage ratios");
-        el("usageIntro").textContent = L(
-          "検索がどう終わったかは、結果の種類ごとに固定の合図だけを送って数えています。割合は作成者だけが見られる GoatCounter の集計から、次のように出します。ページ自体に数値は表示されません。",
-          "How each search ended is counted by sending only a fixed signal per outcome type. Ratios are computed from the GoatCounter tally, visible only to the author, as follows. No numbers are shown on this page itself.");
-        el("usageThCat").textContent = L("区分", "Category");
-        el("usageThCount").textContent = L("数え方", "What is counted");
-        el("usageThRatio").textContent = L("割合の出し方", "Ratio");
-        el("usageBody").innerHTML =
-          "<tr><td><strong>" + L("閲覧", "Page views") + "</strong></td><td>" + L("ページが開かれた回数", "Times this page was opened") + "</td><td>" + L("—（分母）", "— (denominator)") + "</td></tr>" +
-          "<tr><td><strong>" + L("検索を実行", "Searches run") + "</strong></td><td>" + L("「公式記録を取得」が押された回数（合図: ", "Times \"Fetch official results\" was pressed (signal: ") + '<span class="num">search</span>' + L("）", ")") + "</td><td>" + L("検索実行 ÷ 閲覧", "Searches ÷ views") + "</td></tr>" +
-          "<tr><td><strong>" + L("検索が成功", "Searches succeeded") + "</strong></td><td>" + L("公式記録が取得できた回数（合図: ", "Times official results were fetched (signal: ") + '<span class="num">search-success</span>' + L("）", ")") + "</td><td>" + L("成功 ÷ 検索実行", "Succeeded ÷ searches") + "</td></tr>" +
-          "<tr><td><strong>" + L("エラーで終了", "Ended in error") + "</strong></td><td>" + L("見つからない／記録なし／通信失敗で終わった回数（合図: ", "Times a search ended with not found / no results / connection failure (signal: ") + '<span class="num">search-error</span>' + L("）", ")") + "</td><td>" + L("エラー ÷ 検索実行", "Errors ÷ searches") + "</td></tr>" +
-          "<tr><td><strong>" + L("形式エラーで終了", "Ended in invalid-ID error") + "</strong></td><td>" + L("WCA IDの形式が違って実行できなかった回数（合図: ", "Times the WCA ID format was wrong so the search could not run (signal: ") + '<span class="num">search-invalid</span>' + L("）", ")") + "</td><td>" + L("形式エラー ÷ 検索実行", "Invalid ÷ searches") + "</td></tr>" +
-          "<tr><td><strong>" + L("開いただけで何もしなかった", "Opened but did nothing") + "</strong></td><td>" + L("閲覧のうち検索を実行しなかった分（目安）", "Views where no search was run (estimate)") + "</td><td>" + L("（閲覧 − 検索実行）÷ 閲覧", "(Views − searches) ÷ views") + "</td></tr>";
-        el("usageNote").textContent = L(
-          "成功＋エラー＋形式エラーが検索実行と一致するのが目安です。「何もしなかった」は、同じ人が複数回検索したり再読み込みしたりすると多少ずれるため目安として扱います。毎日の報告では、この区分で閲覧数に対する割合と、検索実行に対する成功／エラーの割合を併記できます。",
-          "Succeeded + errors + invalid should roughly add up to searches run. \"Did nothing\" is only an estimate, since repeat searches and reloads by the same person shift it. The daily report can include these ratios against views, and the success / error ratios against searches run.");
         el("footText").innerHTML = L(
-          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。各割合の出し方は上の「利用状況の割合について」をご覧ください。<br />作成者　ゆめもぐら",
-          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies page views and the counts of search runs / successes / errors / invalid-ID errors (only fixed signals are sent; WCA IDs and practice data are never transmitted). The tallies are visible only to the author. See \"About the usage ratios\" above for how each ratio is computed.<br />Created by yumemogura");
+          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。<br />作成者　ゆめもぐら",
+          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies page views and the counts of search runs / successes / errors / invalid-ID errors (only fixed signals are sent; WCA IDs and practice data are never transmitted). The tallies are visible only to the author.<br />Created by yumemogura");
         updateGenBtn();
         if (state.sessions.length) renderSessions();
         if (state.results && state.sessions.length) syncSessions();
