@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light" />
     <link rel="icon" href="data:," />
-    <title>WCA Performance Analyzer</title>
+    <title>PB or Fluke? — WCA Performance Analyzer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -61,6 +61,11 @@
         border: none;
       }
       h1::after { content:""; display:block; width:44px; height:3px; background:var(--accent); border-radius:999px; margin-top:16px; }
+      .brand-sub {
+        font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 600;
+        letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+        margin: 0 0 14px;
+      }
       h2, h3 { font-family: "Zen Kaku Gothic New", sans-serif; line-height: 1.4; color: var(--ink); }
       h2 { font-size: 19px; font-weight: 800; margin: 0 0 6px; letter-spacing: .01em; }
       h3 { font-size: 15px; font-weight: 700; margin: 0 0 4px; }
@@ -262,6 +267,15 @@
         .drop label.pickbtn { display: block; text-align: center; }
         .kpis { grid-template-columns: 1fr 1fr; }
       }
+      .lang-switch { display: flex; justify-content: flex-end; gap: 0; padding-top: 18px; }
+      .lang-switch button {
+        font-size: 12.5px; padding: 7px 16px; border-radius: 0;
+        background: #fff; color: var(--muted); border: 1px solid var(--line-strong);
+      }
+      .lang-switch button:first-child { border-radius: 999px 0 0 999px; border-right: none; }
+      .lang-switch button:last-child { border-radius: 0 999px 999px 0; }
+      .lang-switch button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+      .lang-switch button:hover:not(.active) { background: var(--panel2); color: var(--ink); }
       .hidden { display: none !important; }
       .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp 0.8s linear infinite; vertical-align: -2px; margin-right: 6px; }
       @keyframes sp { to { transform: rotate(360deg); } }
@@ -275,8 +289,13 @@
   </head>
   <body>
     <main class="wrap">
-      <h1>WCA Performance Analyzer</h1>
-      <p class="lead">
+      <div class="lang-switch no-print" role="group" aria-label="Language / 言語">
+        <button type="button" id="langJa">日本語</button>
+        <button type="button" id="langEn">English</button>
+      </div>
+      <h1>PB or Fluke?</h1>
+      <p class="brand-sub">WCA Performance Analyzer</p>
+      <p class="lead" id="leadText">
         <strong>本番力分析ツール</strong> — WCA IDを入力して公式記録を取得し、csTimerのエクスポートファイルと組み合わせると、
         「公式大会でどれだけ実力を出せたか」を大会・種目ごとに判定するレポートが作れます。
         比較に使うのは<strong>大会前14日間の練習</strong>のみ。計算はすべてこのブラウザの中で完結し、
@@ -284,44 +303,44 @@
       </p>
 
       <section class="card no-print" aria-label="データの入力">
-        <div class="step-head"><span class="step-no">1</span><h2>WCA IDで公式記録を取得</h2></div>
+        <div class="step-head"><span class="step-no">1</span><h2 id="step1Title">WCA IDで公式記録を取得</h2></div>
         <div class="row">
           <input type="text" id="wcaId" placeholder="例: 2025TAKA04" autocomplete="off" spellcheck="false" aria-label="WCA ID" />
           <button id="fetchBtn" type="button">公式記録を取得</button>
         </div>
         <div class="status" id="wcaStatus" role="status"></div>
         <div class="msg err" id="wcaError"></div>
-        <p class="hint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と「公式記録を取得」の実行・成功・エラー（形式エラー含む）の回数だけを、固定の合図で集計しています。入力したWCA IDや練習データは集計先に送信されません。</p>
+        <p class="hint" id="fetchHint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と「公式記録を取得」の実行・成功・エラー（形式エラー含む）の回数だけを、固定の合図で集計しています。入力したWCA IDや練習データは集計先に送信されません。</p>
 
-        <div class="step-head" style="margin-top:22px"><span class="step-no">2</span><h2>練習データを読み込む（csTimer）</h2></div>
+        <div class="step-head" style="margin-top:22px"><span class="step-no">2</span><h2 id="step2Title">練習データを読み込む（csTimer）</h2></div>
 
         <div class="guide">
-          <h3>csTimerの手順</h3>
+          <h3 id="guideTitle">csTimerの手順</h3>
           <ol>
-            <li><a class="openbtn" href="https://cstimer.net" target="_blank" rel="noopener">csTimerを開く</a>（別タブで開きます）</li>
-            <li>csTimerにログインする</li>
-            <li>「Export」→「Export to File」（日本語版では「ファイルにエクスポート」）でファイルを書き出す</li>
-            <li>書き出したファイルを下のボタンで選ぶ（PCなら枠内へのドラッグ＆ドロップでもOK）</li>
+            <li><a class="openbtn" href="https://cstimer.net" target="_blank" rel="noopener" id="guideOpenBtn">csTimerを開く</a><span id="guideLi1b">（別タブで開きます）</span></li>
+            <li id="guideLi2">csTimerにログインする</li>
+            <li id="guideLi3">「Export」→「Export to File」（日本語版では「ファイルにエクスポート」）でファイルを書き出す</li>
+            <li id="guideLi4">書き出したファイルを下のボタンで選ぶ（PCなら枠内へのドラッグ＆ドロップでもOK）</li>
           </ol>
-          <p class="hint" style="margin-bottom:0">種目はファイルのスクランブル種別から自動で対応づけます。次のステップで確認・変更できます。</p>
+          <p class="hint" style="margin-bottom:0" id="guideHint">種目はファイルのスクランブル種別から自動で対応づけます。次のステップで確認・変更できます。</p>
         </div>
 
         <div class="drop" id="drop">
           <input type="file" id="fileInput" accept=".txt,.json,text/plain,application/json" multiple />
-          <label class="pickbtn" for="fileInput">ファイルを選ぶ</label>
-          <p style="margin:10px 0 0">スマホ・タブレットでは上のボタンから選択してください。PCではここにドラッグ＆ドロップもできます。</p>
+          <label class="pickbtn" for="fileInput" id="pickBtnLabel">ファイルを選ぶ</label>
+          <p style="margin:10px 0 0" id="dropNote">スマホ・タブレットでは上のボタンから選択してください。PCではここにドラッグ＆ドロップもできます。</p>
         </div>
         <div class="status" id="fileStatus" role="status"></div>
         <div class="msg err" id="fileError"></div>
 
         <div id="sessArea" class="hidden">
-          <div class="step-head" style="margin-top:22px"><span class="step-no">3</span><h2>セッションと種目の対応を確認</h2></div>
-          <p class="hint">
+          <div class="step-head" style="margin-top:22px"><span class="step-no">3</span><h2 id="step3Title">セッションと種目の対応を確認</h2></div>
+          <p class="hint" id="step3Hint">
             練習専用セッション（パート練習・分析用など）は「対象外」にしてください。対応づけを変えると、その場でレポートを作り直します。
           </p>
           <div class="sess-wrap">
             <table class="sess-table">
-              <thead><tr><th>セッション名</th><th class="num">試技数</th><th>対応する種目</th></tr></thead>
+              <thead><tr><th id="sessThName">セッション名</th><th class="num" id="sessThCount">試技数</th><th id="sessThEvent">対応する種目</th></tr></thead>
               <tbody id="sessBody"></tbody>
             </table>
           </div>
@@ -336,13 +355,13 @@
 
       <section id="report" class="hidden" aria-label="分析レポート"></section>
 
-      <section class="card" aria-label="利用状況の割合について">
-        <h2>利用状況の割合について</h2>
-        <p class="hint" style="margin-bottom:10px">検索がどう終わったかは、結果の種類ごとに固定の合図だけを送って数えています。割合は作成者だけが見られる GoatCounter の集計から、次のように出します。ページ自体に数値は表示されません。</p>
+      <section class="card" aria-label="利用状況の割合について" id="usageSection">
+        <h2 id="usageTitle">利用状況の割合について</h2>
+        <p class="hint" style="margin-bottom:10px" id="usageIntro">検索がどう終わったかは、結果の種類ごとに固定の合図だけを送って数えています。割合は作成者だけが見られる GoatCounter の集計から、次のように出します。ページ自体に数値は表示されません。</p>
         <div class="sess-wrap">
           <table class="sess-table">
-            <thead><tr><th>区分</th><th>数え方</th><th>割合の出し方</th></tr></thead>
-            <tbody>
+            <thead><tr><th id="usageThCat">区分</th><th id="usageThCount">数え方</th><th id="usageThRatio">割合の出し方</th></tr></thead>
+            <tbody id="usageBody">
               <tr><td><strong>閲覧</strong></td><td>ページが開かれた回数</td><td>—（分母）</td></tr>
               <tr><td><strong>検索を実行</strong></td><td>「公式記録を取得」が押された回数（合図: <span class="num">search</span>）</td><td>検索実行 ÷ 閲覧</td></tr>
               <tr><td><strong>検索が成功</strong></td><td>公式記録が取得できた回数（合図: <span class="num">search-success</span>）</td><td>成功 ÷ 検索実行</td></tr>
@@ -352,10 +371,10 @@
             </tbody>
           </table>
         </div>
-        <p class="hint" style="margin-top:10px;margin-bottom:0">成功＋エラー＋形式エラーが検索実行と一致するのが目安です。「何もしなかった」は、同じ人が複数回検索したり再読み込みしたりすると多少ずれるため目安として扱います。毎日の報告では、この区分で閲覧数に対する割合と、検索実行に対する成功／エラーの割合を併記できます。</p>
+        <p class="hint" style="margin-top:10px;margin-bottom:0" id="usageNote">成功＋エラー＋形式エラーが検索実行と一致するのが目安です。「何もしなかった」は、同じ人が複数回検索したり再読み込みしたりすると多少ずれるため目安として扱います。毎日の報告では、この区分で閲覧数に対する割合と、検索実行に対する成功／エラーの割合を併記できます。</p>
       </section>
 
-      <p class="foot">
+      <p class="foot" id="footText">
         公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
         練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />
         利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。各割合の出し方は上の「利用状況の割合について」をご覧ください。<br />
@@ -366,24 +385,45 @@
       "use strict";
       /* ================= 基本定義 ================= */
       var EVENTS = {
-        "333":   { label: "3×3×3",        fmt: 5 },
-        "222":   { label: "2×2×2",        fmt: 5 },
-        "444":   { label: "4×4×4",        fmt: 5 },
-        "555":   { label: "5×5×5",        fmt: 5 },
-        "666":   { label: "6×6×6",        fmt: 3 },
-        "777":   { label: "7×7×7",        fmt: 3 },
-        "333bf": { label: "3×3×3目隠し",   fmt: 3, bld: true },
-        "333oh": { label: "3×3×3片手",     fmt: 5 },
-        "clock": { label: "クロック",      fmt: 5 },
-        "minx":  { label: "メガミンクス",   fmt: 5 },
-        "pyram": { label: "ピラミンクス",   fmt: 5 },
-        "skewb": { label: "スキューブ",     fmt: 5 },
-        "sq1":   { label: "スクエア1",     fmt: 5 },
-        "444bf": { label: "4×4×4目隠し",   fmt: 1, bld: true },
-        "555bf": { label: "5×5×5目隠し",   fmt: 1, bld: true },
-        "333fm": { label: "3×3×3最少手数", fmt: 3, fmc: true },
-        "333mbf":{ label: "3×3×3複数目隠し", fmt: 3, bld: true, mbf: true }
+        "333":   { label: "3×3×3",        labelEn: "3x3x3 Cube",            fmt: 5 },
+        "222":   { label: "2×2×2",        labelEn: "2x2x2 Cube",            fmt: 5 },
+        "444":   { label: "4×4×4",        labelEn: "4x4x4 Cube",            fmt: 5 },
+        "555":   { label: "5×5×5",        labelEn: "5x5x5 Cube",            fmt: 5 },
+        "666":   { label: "6×6×6",        labelEn: "6x6x6 Cube",            fmt: 3 },
+        "777":   { label: "7×7×7",        labelEn: "7x7x7 Cube",            fmt: 3 },
+        "333bf": { label: "3×3×3目隠し",   labelEn: "3x3x3 Blindfolded",     fmt: 3, bld: true },
+        "333oh": { label: "3×3×3片手",     labelEn: "3x3x3 One-Handed",      fmt: 5 },
+        "clock": { label: "クロック",      labelEn: "Clock",                 fmt: 5 },
+        "minx":  { label: "メガミンクス",   labelEn: "Megaminx",              fmt: 5 },
+        "pyram": { label: "ピラミンクス",   labelEn: "Pyraminx",              fmt: 5 },
+        "skewb": { label: "スキューブ",     labelEn: "Skewb",                 fmt: 5 },
+        "sq1":   { label: "スクエア1",     labelEn: "Square-1",              fmt: 5 },
+        "444bf": { label: "4×4×4目隠し",   labelEn: "4x4x4 Blindfolded",     fmt: 1, bld: true },
+        "555bf": { label: "5×5×5目隠し",   labelEn: "5x5x5 Blindfolded",     fmt: 1, bld: true },
+        "333fm": { label: "3×3×3最少手数", labelEn: "3x3x3 Fewest Moves",    fmt: 3, fmc: true },
+        "333mbf":{ label: "3×3×3複数目隠し", labelEn: "3x3x3 Multi-Blind",   fmt: 3, bld: true, mbf: true }
       };
+
+      /* ================= 言語（日本語／English） =================
+         初期表示: localStorageの手動選択があればそれを優先。
+         なければブラウザの言語（navigator.language）が日本語なら日本語、それ以外は英語。
+         手動で切り替えたときだけ localStorage に保存する。 */
+      var LANG_KEY = "wca-analyzer-lang";
+      var LANG = "ja";
+      (function detectLang() {
+        var saved = null;
+        try { saved = window.localStorage.getItem(LANG_KEY); } catch (e) { saved = null; }
+        if (saved === "ja" || saved === "en") { LANG = saved; return; }
+        var nav = (navigator.language || (navigator.languages && navigator.languages[0]) || "").toLowerCase();
+        LANG = (nav === "ja" || nav.indexOf("ja-") === 0) ? "ja" : "en";
+      })();
+      function L(ja, en) { return LANG === "en" ? en : ja; }
+      function evLabel(k) { var m = EVENTS[k]; if (!m) return k; return LANG === "en" ? m.labelEn : m.label; }
+      var VERDICT_EN = {
+        "大上振れ": "Huge overperformance", "上振れ": "Overperformance", "実力通り": "As expected",
+        "下振れ": "Underperformance", "大下振れ": "Huge underperformance"
+      };
+      function tv(v) { return LANG === "en" ? (VERDICT_EN[v] || v) : v; }
       /* レーダー用: 似た種目が隣り合う並び */
       var RADAR_ORDER = ["333","222","333oh","444","555","666","777","minx","pyram","skewb","clock","sq1","333fm","333bf","444bf","555bf","333mbf"];
       /* csTimerのスクランブル種別 → WCA種目 */
@@ -463,12 +503,12 @@
         trackSearch();
         if (!/^\d{4}[A-Z]{4}\d{2}$/.test(id)) {
           trackSearchInvalid();
-          showMsg("wcaError", "WCA IDの形式が正しくありません（例: 2025TAKA04）。年度4桁＋英字4文字＋数字2桁で入力してください。");
+          showMsg("wcaError", L("WCA IDの形式が正しくありません（例: 2025TAKA04）。年度4桁＋英字4文字＋数字2桁で入力してください。", "That doesn't look like a valid WCA ID (example: 2025TAKA04). Use 4 digits (year) + 4 letters + 2 digits."));
           return;
         }
         var btn = el("fetchBtn");
         btn.disabled = true;
-        el("wcaStatus").innerHTML = '<span class="spin"></span>WCAから公式記録を取得しています…';
+        el("wcaStatus").innerHTML = '<span class="spin"></span>' + L("WCAから公式記録を取得しています…", "Fetching official results from the WCA…");
         fetchJSON(API + "/persons/" + id).then(function (person) {
           state.personName = (person.person && person.person.name) || "";
           return fetchJSON(API + "/persons/" + id + "/results");
@@ -490,7 +530,7 @@
             trackSearchSuccess();
             var dated = ids.filter(function (cid) { return comps[cid].start; }).length;
             el("wcaStatus").innerHTML = "";
-            el("wcaStatus").textContent = "取得完了: " + (state.personName ? state.personName + " / " : "") + "大会 " + ids.length + " 件・結果 " + results.length + " 件" + (dated < ids.length ? "（うち " + (ids.length - dated) + " 大会は日程が取得できず分析対象外）" : "");
+            el("wcaStatus").textContent = L("取得完了: ", "Done: ") + (state.personName ? state.personName + " / " : "") + L("大会 " + ids.length + " 件・結果 " + results.length + " 件", ids.length + " competitions, " + results.length + " results") + (dated < ids.length ? L("（うち " + (ids.length - dated) + " 大会は日程が取得できず分析対象外）", " (" + (ids.length - dated) + " competition(s) excluded: dates could not be fetched)") : "");
             el("wcaStatus").className = "status ok";
             updateGenBtn();
             if (state.sessions.length) generate();
@@ -499,9 +539,9 @@
           trackSearchError();
           el("wcaStatus").innerHTML = "";
           el("wcaStatus").className = "status";
-          if (e.message === "notfound") showMsg("wcaError", "そのWCA IDの選手が見つかりませんでした。IDを確認してください。");
-          else if (e.message === "empty") showMsg("wcaError", "公式記録がまだ登録されていないIDです。大会に出場して記録が反映されると分析できます。");
-          else showMsg("wcaError", "WCA APIへの接続に失敗しました（Failed to fetch）。お使いの回線やブラウザがWCA公式サイトへの接続を遮断している可能性があります。対処法: ①Wi-Fiとモバイル回線を切り替える ②広告ブロック・VPNを一時的に切る ③別のブラウザで開く ④時間をおいて再試行する。それでも失敗する場合は、WCA IDが正しいかWCA公式サイトでご確認ください。");
+          if (e.message === "notfound") showMsg("wcaError", L("そのWCA IDの選手が見つかりませんでした。IDを確認してください。", "No competitor was found for that WCA ID. Please check the ID."));
+          else if (e.message === "empty") showMsg("wcaError", L("公式記録がまだ登録されていないIDです。大会に出場して記録が反映されると分析できます。", "This WCA ID has no official results yet. Once you compete and results are posted, you can run the analysis."));
+          else showMsg("wcaError", L("WCA APIへの接続に失敗しました（Failed to fetch）。お使いの回線やブラウザがWCA公式サイトへの接続を遮断している可能性があります。対処法: ①Wi-Fiとモバイル回線を切り替える ②広告ブロック・VPNを一時的に切る ③別のブラウザで開く ④時間をおいて再試行する。それでも失敗する場合は、WCA IDが正しいかWCA公式サイトでご確認ください。", "Could not connect to the WCA API (Failed to fetch). Your network or browser may be blocking access to the WCA website. Try: 1) switch between Wi-Fi and mobile data, 2) temporarily disable ad blockers / VPN, 3) try another browser, 4) wait and retry. If it still fails, check on the official WCA website that the ID is correct."));
         }).finally(function () { btn.disabled = false; });
       });
       el("wcaId").addEventListener("keydown", function (e) { if (e.key === "Enter") el("fetchBtn").click(); });
@@ -533,7 +573,7 @@
           });
         });
         sessions.sort(function (a, b) { return parseInt(a.key.slice(7), 10) - parseInt(b.key.slice(7), 10); });
-        if (!sessions.length) throw new Error("セッションが見つかりませんでした。csTimerのエクスポートファイルか確認してください。");
+        if (!sessions.length) throw new Error(L("セッションが見つかりませんでした。csTimerのエクスポートファイルか確認してください。", "No sessions were found. Please check that this is a csTimer export file."));
         return sessions;
       }
 
@@ -541,7 +581,7 @@
         state.sessions = state.csSessions.slice();
         if (state.sessions.length) {
           var total = state.sessions.reduce(function (s, x) { return s + x.attempts.length; }, 0);
-          el("fileStatus").textContent = "読み込み済み: " + state.sessions.length + " セッション・総試技数 " + total.toLocaleString() + " 件（" + state.loadedNames.join("、") + "）";
+          el("fileStatus").textContent = L("読み込み済み: " + state.sessions.length + " セッション・総試技数 " + total.toLocaleString() + " 件（" + state.loadedNames.join("、") + "）", "Loaded: " + state.sessions.length + " sessions, " + total.toLocaleString() + " attempts in total (" + state.loadedNames.join(", ") + ")");
           el("fileStatus").className = "status ok";
         }
         renderSessions();
@@ -551,7 +591,7 @@
         return new Promise(function (res, rej) {
           var r = new FileReader();
           r.onload = function () { res(String(r.result)); };
-          r.onerror = function () { rej(new Error(file.name + ": ファイルの読み込みに失敗しました")); };
+          r.onerror = function () { rej(new Error(file.name + L(": ファイルの読み込みに失敗しました", ": failed to read the file"))); };
           r.readAsText(file);
         });
       }
@@ -564,11 +604,11 @@
         list.forEach(function (file) {
           chain = chain.then(function () { return readTextFile(file); }).then(function (text) {
             var data;
-            try { data = JSON.parse(text); } catch (e) { throw new Error(file.name + ": JSONとして読み取れませんでした。csTimerのエクスポートファイルを選んでください。"); }
+            try { data = JSON.parse(text); } catch (e) { throw new Error(file.name + L(": JSONとして読み取れませんでした。csTimerのエクスポートファイルを選んでください。", ": could not be parsed as JSON. Please choose a csTimer export file.")); }
             if (data && Object.keys(data).some(function (k) { return /^session\d+$/.test(k); })) {
               state.csSessions = parseCsTimerData(data);
             } else {
-              throw new Error(file.name + ": csTimerのエクスポートファイルか判別できませんでした。");
+              throw new Error(file.name + L(": csTimerのエクスポートファイルか判別できませんでした。", ": this doesn't look like a csTimer export file."));
             }
             if (state.loadedNames.indexOf(file.name) < 0) state.loadedNames.push(file.name);
           }).catch(function (e) { errors.push(e.message); });
@@ -588,15 +628,15 @@
       function renderSessions() {
         var body = el("sessBody");
         body.innerHTML = "";
-        var opts = ['<option value="">対象外</option>'].concat(Object.keys(EVENTS).map(function (k) {
-          return '<option value="' + k + '">' + esc(EVENTS[k].label) + '</option>';
+        var opts = ['<option value="">' + L("対象外", "Exclude") + '</option>'].concat(Object.keys(EVENTS).map(function (k) {
+          return '<option value="' + k + '">' + esc(evLabel(k)) + '</option>';
         })).join("");
         state.sessions.forEach(function (s, i) {
           var tr = document.createElement("tr");
           var selId = "sessSel" + i;
           tr.innerHTML = "<td>" + esc(s.name) + (s.scrType ? ' <span class="hint">(' + esc(s.scrType) + ")</span>" : "") + "</td>" +
             '<td class="num">' + s.attempts.length.toLocaleString() + "</td>" +
-            '<td><select id="' + selId + '" aria-label="種目">' + opts + "</select></td>";
+            '<td><select id="' + selId + '" aria-label="' + L("種目", "Event") + '">' + opts + "</select></td>";
           body.appendChild(tr);
           var sel = el(selId);
           sel.value = s.event || "";
@@ -610,7 +650,7 @@
       function updateGenBtn() {
         var ok = !!(state.results && state.sessions.length);
         el("genBtn").disabled = !ok;
-        el("genHint").textContent = ok ? "準備ができました。" : "公式記録と練習ファイルの両方がそろうと作成できます。";
+        el("genHint").textContent = ok ? L("準備ができました。", "Ready.") : L("公式記録と練習ファイルの両方がそろうと作成できます。", "Available once both the official results and a practice file are loaded.");
       }
       el("genBtn").addEventListener("click", generate);
 
@@ -739,7 +779,7 @@
               rVerdict: null, rText: null, score: null, cells: 0
             };
             if (meta.mbf) {
-              row.note = "複数目隠しは練習データと比較しないため評価対象外";
+              row.note = "mbf"; /* 表示時に言語へ変換する */
             } else {
               if (e.single != null && seq.length) {
                 var sb = singleBlocks(seq, Math.max(1, e.blockSize), e.single);
@@ -757,7 +797,7 @@
                   var pOk = seq.filter(function (t) { return t != null; }).length;
                   var offRate = 100 * offOk / offTried.length;
                   var pRate = 100 * pOk / seq.length;
-                  row.rText = "公式 " + offRate.toFixed(0) + "% vs 練習 " + pRate.toFixed(0) + "%";
+                  row.rText = { off: offRate, prac: pRate }; /* 表示時に言語へ変換する */
                   row.rVerdict = classifyRate(offRate - pRate);
                 }
               }
@@ -769,14 +809,14 @@
           });
         });
         if (!rows.length) {
-          showMsg("genWarn", "分析できる行がありませんでした。WCA IDの大会日程とcsTimerの記録期間が重なっているか確認してください。");
+          showMsg("genWarn", L("分析できる行がありませんでした。WCA IDの大会日程とcsTimerの記録期間が重なっているか確認してください。", "Nothing could be analyzed. Check that the competition dates for this WCA ID overlap with the period covered by your csTimer data."));
           el("report").classList.add("hidden");
           return;
         }
         showMsg("genWarn", "");
         var noPractice = rows.filter(function (r) { return !r.cells && !EVENTS[r.event].mbf; }).length;
         if (noPractice > 0) {
-          showMsg("genWarn", noPractice + " 行は大会前14日間の練習データがなく評価できませんでした。csTimerの記録期間外の大会や、セッションの対応づけが「対象外」になっている種目が該当します。");
+          showMsg("genWarn", L(noPractice + " 行は大会前14日間の練習データがなく評価できませんでした。csTimerの記録期間外の大会や、セッションの対応づけが「対象外」になっている種目が該当します。", noPractice + " row(s) could not be rated because there was no practice data in the 14 days before the competition — competitions outside your csTimer data range, or events whose sessions are set to \"Exclude\"."));
         }
         state.report = { rows: rows, compList: compList };
         renderReport();
@@ -785,10 +825,19 @@
       /* ================= レポート描画 ================= */
       function verdictHTML(v, refText, unreliable) {
         if (!v) return '<span class="vna">—</span>';
-        var h = '<span class="verdict ' + VCLASS[v] + '">' + v + "</span>";
-        if (refText) h += '<span class="ref">（' + esc(refText) + "）</span>";
-        if (unreliable) h += '<span class="note-ref">※参考</span>';
+        var h = '<span class="verdict ' + VCLASS[v] + '">' + esc(tv(v)) + "</span>";
+        if (refText) h += '<span class="ref">' + L("（", "(") + esc(refText) + L("）", ")") + "</span>";
+        if (unreliable) h += '<span class="note-ref">' + L("※参考", "*indicative") + "</span>";
         return h;
+      }
+      function rateText(rt) {
+        if (rt == null) return null;
+        if (typeof rt === "string") return rt;
+        return L("公式 " + rt.off.toFixed(0) + "% vs 練習 " + rt.prac.toFixed(0) + "%", "Official " + rt.off.toFixed(0) + "% vs practice " + rt.prac.toFixed(0) + "%");
+      }
+      function noteText(n) {
+        if (n === "mbf") return L("複数目隠しは練習データと比較しないため評価対象外", "Multi-Blind is not compared with practice data, so it is not rated");
+        return n;
       }
       function aggregate(rows) {
         var cells = { total: 0, up: 0, flat: 0, down: 0 }, sum = 0;
@@ -814,7 +863,7 @@
         rows.forEach(function (r) { (byEv[r.event] = byEv[r.event] || []).push(r); });
         var keys = RADAR_ORDER.filter(function (k) { return byEv[k]; });
         Object.keys(byEv).forEach(function(k){ if(keys.indexOf(k)<0) keys.push(k); });
-        var h = '<div class="summary-wrap"><table class="summary-table"><thead><tr><th>種目</th><th class="num">大会数</th><th class="num">公式ベスト単発</th><th class="num">公式ベスト平均</th><th class="num">本番力スコア</th><th>総合評価</th><th>評価の内訳</th></tr></thead><tbody>';
+        var h = '<div class="summary-wrap"><table class="summary-table"><thead><tr><th>' + L("種目", "Event") + '</th><th class="num">' + L("大会数", "Comps") + '</th><th class="num">' + L("公式ベスト単発", "Best single (official)") + '</th><th class="num">' + L("公式ベスト平均", "Best average (official)") + '</th><th class="num">' + L("本番力スコア", "Performance score") + '</th><th>' + L("総合評価", "Overall") + '</th><th>' + L("評価の内訳", "Breakdown") + '</th></tr></thead><tbody>';
         keys.forEach(function (k) {
           var rs = byEv[k], agg = aggregate(rs);
           var bestS = null, bestA = null, bestMbf = null;
@@ -829,13 +878,13 @@
           var ov = overallVerdict(mean);
           var scoreCls = mean == null ? "" : (mean > 0.05 ? " pos" : (mean < -0.05 ? " neg" : ""));
           h += "<tr>" +
-            '<td class="ev-cell"><span class="ev-name">' + esc(EVENTS[k].label) + '</span><span class="ev-sub">' + agg.cells.total + ' 件の評価</span></td>' +
-            '<td data-l="大会数" class="num">' + rs.length + '</td>' +
-            '<td data-l="ベスト単発" class="num">' + esc(singleDisp) + '</td>' +
-            '<td data-l="ベスト平均" class="num">' + esc(avgDisp) + '</td>' +
-            '<td data-l="スコア" class="num"><span class="score' + scoreCls + '">' + (mean == null ? "—" : fmtScore(mean)) + '</span></td>' +
-            '<td data-l="総合評価">' + (ov ? '<span class="verdict ' + VCLASS[ov] + '">' + ov + '</span>' : '<span class="vna">評価なし</span>') + '</td>' +
-            '<td data-l="内訳"><div class="dist"><span class="up">上振れ <b>' + agg.cells.up + '</b></span><span>実力通り <b>' + agg.cells.flat + '</b></span><span class="down">下振れ <b>' + agg.cells.down + '</b></span></div></td>' +
+            '<td class="ev-cell"><span class="ev-name">' + esc(evLabel(k)) + '</span><span class="ev-sub">' + L(agg.cells.total + " 件の評価", agg.cells.total + " ratings") + '</span></td>' +
+            '<td data-l="' + L("大会数", "Comps") + '" class="num">' + rs.length + '</td>' +
+            '<td data-l="' + L("ベスト単発", "Best single") + '" class="num">' + esc(singleDisp) + '</td>' +
+            '<td data-l="' + L("ベスト平均", "Best average") + '" class="num">' + esc(avgDisp) + '</td>' +
+            '<td data-l="' + L("スコア", "Score") + '" class="num"><span class="score' + scoreCls + '">' + (mean == null ? "—" : fmtScore(mean)) + '</span></td>' +
+            '<td data-l="' + L("総合評価", "Overall") + '">' + (ov ? '<span class="verdict ' + VCLASS[ov] + '">' + esc(tv(ov)) + '</span>' : '<span class="vna">' + L("評価なし", "Not rated") + '</span>') + '</td>' +
+            '<td data-l="' + L("内訳", "Breakdown") + '"><div class="dist"><span class="up">' + L("上振れ", "Above") + ' <b>' + agg.cells.up + '</b></span><span>' + L("実力通り", "As expected") + ' <b>' + agg.cells.flat + '</b></span><span class="down">' + L("下振れ", "Below") + ' <b>' + agg.cells.down + '</b></span></div></td>' +
             "</tr>";
         });
         h += "</tbody></table></div>";
@@ -850,61 +899,61 @@
         rows.forEach(function(r){ evSet[r.event]=true; });
         var out = [];
         out.push('<div class="card">');
-        out.push("<h2>" + esc(state.personName || state.wcaId) + "（" + esc(state.wcaId) + "）の本番力レポート</h2>");
-        out.push('<p class="hint">対象: WCA公式 ' + Object.keys(comps).length + " 大会・" + Object.keys(evSet).length + " 種目／評価 " + agg.cells.total + " 件。比較に使った練習は各大会の前14日間のみです。下に <strong style=\"color:var(--ink)\">種目別明細（1行 = 1種目）</strong> と <strong style=\"color:var(--ink)\">大会別明細（1行 = 1大会 × 1種目）</strong> の2つの表があります。</p>");
+        out.push("<h2>" + L("PB or Fluke? — " + esc(state.personName || state.wcaId) + "（" + esc(state.wcaId) + "）の本番力レポート", "PB or Fluke? — Competition performance report for " + esc(state.personName || state.wcaId) + " (" + esc(state.wcaId) + ")") + "</h2>");
+        out.push('<p class="hint">' + L("対象: WCA公式 " + Object.keys(comps).length + " 大会・" + Object.keys(evSet).length + " 種目／評価 " + agg.cells.total + " 件。比較に使った練習は各大会の前14日間のみです。下に <strong style=\"color:var(--ink)\">種目別明細（1行 = 1種目）</strong> と <strong style=\"color:var(--ink)\">大会別明細（1行 = 1大会 × 1種目）</strong> の2つの表があります。", "Scope: " + Object.keys(comps).length + " WCA competitions, " + Object.keys(evSet).length + " events, " + agg.cells.total + " ratings. Only practice from the 14 days before each competition is used for comparison. Below are two tables: <strong style=\"color:var(--ink)\">by event (one row per event)</strong> and <strong style=\"color:var(--ink)\">by competition (one row per competition × event)</strong>.") + "</p>");
         out.push('<div class="kpis">');
-        out.push('<div class="kpi"><div class="v num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + '</div><div class="k">本番力スコア（全評価の平均）</div></div>');
-        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.up / agg.cells.total) : 0) + '%</div><div class="k">上振れ率（' + agg.cells.up + " 件）</div></div>");
-        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.flat / agg.cells.total) : 0) + '%</div><div class="k">実力通り率（' + agg.cells.flat + " 件）</div></div>");
-        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.down / agg.cells.total) : 0) + '%</div><div class="k">下振れ率（' + agg.cells.down + " 件）</div></div>");
-        out.push('<div class="kpi"><div class="v num">' + Object.keys(comps).length + '</div><div class="k">対象大会数</div></div>');
-        out.push('<div class="kpi"><div class="v num">' + Object.keys(evSet).length + '</div><div class="k">対象種目数</div></div>');
+        out.push('<div class="kpi"><div class="v num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + '</div><div class="k">' + L("本番力スコア（全評価の平均）", "Performance score (mean of all ratings)") + "</div></div>");
+        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.up / agg.cells.total) : 0) + '%</div><div class="k">' + L("上振れ率（" + agg.cells.up + " 件）", "Above-expectation rate (" + agg.cells.up + ")") + "</div></div>");
+        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.flat / agg.cells.total) : 0) + '%</div><div class="k">' + L("実力通り率（" + agg.cells.flat + " 件）", "As-expected rate (" + agg.cells.flat + ")") + "</div></div>");
+        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.down / agg.cells.total) : 0) + '%</div><div class="k">' + L("下振れ率（" + agg.cells.down + " 件）", "Below-expectation rate (" + agg.cells.down + ")") + "</div></div>");
+        out.push('<div class="kpi"><div class="v num">' + Object.keys(comps).length + '</div><div class="k">' + L("対象大会数", "Competitions") + "</div></div>");
+        out.push('<div class="kpi"><div class="v num">' + Object.keys(evSet).length + '</div><div class="k">' + L("対象種目数", "Events") + "</div></div>");
         out.push("</div>");
         out.push('<div class="legend">' +
-          '<span><span class="verdict v2">大上振れ</span> +2</span>' +
-          '<span><span class="verdict v1">上振れ</span> +1</span>' +
-          '<span><span class="verdict v0">実力通り</span> 0</span>' +
-          '<span><span class="verdict vm1">下振れ</span> −1</span>' +
-          '<span><span class="verdict vm2">大下振れ</span> −2</span><span style="margin-left:4px">スコアは評価セルの平均です</span></div>');
+          '<span><span class="verdict v2">' + esc(tv("大上振れ")) + '</span> +2</span>' +
+          '<span><span class="verdict v1">' + esc(tv("上振れ")) + '</span> +1</span>' +
+          '<span><span class="verdict v0">' + esc(tv("実力通り")) + '</span> 0</span>' +
+          '<span><span class="verdict vm1">' + esc(tv("下振れ")) + '</span> −1</span>' +
+          '<span><span class="verdict vm2">' + esc(tv("大下振れ")) + '</span> −2</span><span style="margin-left:4px">' + L("スコアは評価セルの平均です", "The score is the mean of the rating cells") + "</span></div>");
         out.push("</div>");
 
         /* ===== メイン: 1行1種目サマリー ===== */
-        out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>種目別明細 — 1行1種目</h2><span class="hint">全大会を通算</span></div>');
-        out.push('<p class="hint" style="margin-bottom:10px">1行が1種目で、種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」（1大会1種目1行の表）で確認できます。</p>');
+        out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>' + L("種目別明細 — 1行1種目", "By event — one row per event") + '</h2><span class="hint">' + L("全大会を通算", "All competitions combined") + "</span></div>");
+        out.push('<p class="hint" style="margin-bottom:10px">' + L("1行が1種目で、種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」（1大会1種目1行の表）で確認できます。", "One row per event, aggregated across all competitions. The official bests are the fastest results among the competitions covered; the performance score and overall rating average every single / average / success-rate rating. See the by-competition table below for the per-competition breakdown.") + "</p>");
         out.push(eventSummaryHTML(rows));
         out.push('<div class="charts" style="margin-top:20px">');
-        out.push('<div class="chart-box">' + radarSVG(rows) + '<p class="chart-cap">レーダーチャート: 種目ごとの本番力スコア平均（外側ほど本番で上振れ、中心が 0＝実力通り）。</p></div>');
-        out.push('<div><h3 style="margin-bottom:8px">読み方</h3><p class="hint" style="font-size:13.5px;line-height:1.85;color:#374151">スコアが <strong style="color:var(--ink)">プラス</strong> の種目は本番で練習以上の力を出せている傾向、<strong style="color:var(--ink)">マイナス</strong> の種目は本番で崩れやすい傾向です。<br>「評価の内訳」は全大会・全ラウンド分の評価セルの件数です。1つの大会×種目で単発と平均の最大2件（目隠しは成功率も含め最大3件）カウントされます。</p><p class="hint">※ 単発の期待値や練習平均との比較など、1回ごとの判定理由は大会別明細に残しています。</p></div>');
+        out.push('<div class="chart-box">' + radarSVG(rows) + '<p class="chart-cap">' + L("レーダーチャート: 種目ごとの本番力スコア平均（外側ほど本番で上振れ、中心が 0＝実力通り）。", "Radar chart: mean performance score per event (further out = performed above practice level; the center is 0 = as expected).") + "</p></div>");
+        out.push('<div><h3 style="margin-bottom:8px">' + L("読み方", "How to read this") + '</h3><p class="hint" style="font-size:13.5px;line-height:1.85;color:#374151">' + L("スコアが <strong style=\"color:var(--ink)\">プラス</strong> の種目は本番で練習以上の力を出せている傾向、<strong style=\"color:var(--ink)\">マイナス</strong> の種目は本番で崩れやすい傾向です。<br>「評価の内訳」は全大会・全ラウンド分の評価セルの件数です。1つの大会×種目で単発と平均の最大2件（目隠しは成功率も含め最大3件）カウントされます。", "Events with a <strong style=\"color:var(--ink)\">positive</strong> score tend to perform above their practice level in competition; <strong style=\"color:var(--ink)\">negative</strong> scores tend to fall apart under pressure.<br>The breakdown counts rating cells across all competitions and rounds: up to 2 per competition × event (single and average), or up to 3 for blindfolded events (success rate included).") + '</p><p class="hint">' + L("※ 単発の期待値や練習平均との比較など、1回ごとの判定理由は大会別明細に残しています。", "Note: the basis for each rating — expected single, practice average, and so on — is kept in the by-competition table.") + "</p></div>");
         out.push("</div></div>");
 
         /* 期間推移（推移グラフ＋1つの表に統合） */
-        out.push('<div class="card"><h2>期間推移 — 1大会1行の表</h2><p class="hint" style="margin-bottom:10px">時期ごとの波を1つの表にまとめました。1行が1大会で日付順に並び、四半期ごとの小計も同じ表の中の行として入っています。上のグラフはこの表と同じ内容を可視化したものです。</p>');
-        out.push('<div class="chart-box" style="margin-bottom:12px">' + trendSVG(rows) + '<p class="chart-cap">大会ごとの本番力スコア（その大会の全評価セルの平均）の推移。</p></div>');
+        out.push('<div class="card"><h2>' + L("期間推移 — 1大会1行の表", "Trend over time — one row per competition") + '</h2><p class="hint" style="margin-bottom:10px">' + L("時期ごとの波を1つの表にまとめました。1行が1大会で日付順に並び、四半期ごとの小計も同じ表の中の行として入っています。上のグラフはこの表と同じ内容を可視化したものです。", "Ups and downs over time in a single table: one row per competition in date order, with quarterly subtotals as rows in the same table. The chart above visualizes the same data.") + "</p>");
+        out.push('<div class="chart-box" style="margin-bottom:12px">' + trendSVG(rows) + '<p class="chart-cap">' + L("大会ごとの本番力スコア（その大会の全評価セルの平均）の推移。", "Performance score per competition (mean of all rating cells at that competition) over time.") + "</p></div>");
         out.push(periodTableHTML(rows));
         out.push("</div>");
 
         /* 大会別明細（当初の表形式・常時表示） */
-        out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>大会別明細 — 1大会1種目1行</h2><span class="hint">全 ' + rows.length + ' 行</span></div>');
-        out.push('<p class="hint" style="margin-bottom:10px">1行が「1大会 × 1種目」で、日付順に並んでいます。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。</p>');
-        out.push('<div class="main-table-wrap"><table class="main-table"><thead><tr><th>日付</th><th>大会</th><th>種目</th><th class="num">公式単発</th><th class="num">公式平均</th><th>単発の評価（練習時）</th><th>平均の評価（練習時）</th><th>成功率の評価</th></tr></thead><tbody>');
+        out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>' + L("大会別明細 — 1大会1種目1行", "By competition — one row per competition × event") + '</h2><span class="hint">' + L("全 " + rows.length + " 行", rows.length + " rows") + "</span></div>");
+        out.push('<p class="hint" style="margin-bottom:10px">' + L("1行が「1大会 × 1種目」で、日付順に並んでいます。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。", "One row per competition × event, in date order. The value in parentheses for singles is the expected single; for averages it is the mean of practice ao5 from the 14 days before the competition (mo3 for mo3 events). *indicative = fewer than 15 valid practice solves.") + "</p>");
+        out.push('<div class="main-table-wrap"><table class="main-table"><thead><tr><th>' + L("日付", "Date") + '</th><th>' + L("大会", "Competition") + '</th><th>' + L("種目", "Event") + '</th><th class="num">' + L("公式単発", "Official single") + '</th><th class="num">' + L("公式平均", "Official average") + '</th><th>' + L("単発の評価（練習時）", "Single rating (vs practice)") + '</th><th>' + L("平均の評価（練習時）", "Average rating (vs practice)") + '</th><th>' + L("成功率の評価", "Success-rate rating") + "</th></tr></thead><tbody>");
         rows.forEach(function (r) {
           var singleDisp = r.mbfBest ? r.mbfBest.text : fmtTime(r.single, r.event);
           out.push("<tr>" +
-            '<td data-l="日付" class="num">' + esc(r.date) + "</td>" +
-            '<td data-l="大会" class="comp-name"><a href="https://www.worldcubeassociation.org/competitions/' + esc(r.comp) + '" target="_blank" rel="noopener">' + esc(r.compName) + "</a></td>" +
-            '<td data-l="種目">' + esc(r.label) + "</td>" +
-            '<td data-l="公式単発" class="num">' + esc(singleDisp) + "</td>" +
-            '<td data-l="公式平均" class="num">' + fmtTime(r.average, r.event) + "</td>" +
-            '<td data-l="単発の評価（練習時）" class="cell-main">' + (r.note ? '<span class="vna">' + esc(r.note) + "</span>" : verdictHTML(r.sVerdict, r.sRef != null ? fmtTime(r.sRef, r.event) : null, r.sVerdict && !r.reliable)) + "</td>" +
-            '<td data-l="平均の評価（練習時）" class="cell-main">' + verdictHTML(r.aVerdict, r.aRef != null ? fmtTime(r.aRef, r.event) : null, r.aVerdict && !r.reliable) + "</td>" +
-            '<td data-l="成功率の評価" class="cell-main">' + verdictHTML(r.rVerdict, r.rText, r.rVerdict && !r.reliable) + "</td>" +
+            '<td data-l="' + L("日付", "Date") + '" class="num">' + esc(r.date) + "</td>" +
+            '<td data-l="' + L("大会", "Competition") + '" class="comp-name"><a href="https://www.worldcubeassociation.org/competitions/' + esc(r.comp) + '" target="_blank" rel="noopener">' + esc(r.compName) + "</a></td>" +
+            '<td data-l="' + L("種目", "Event") + '">' + esc(evLabel(r.event)) + "</td>" +
+            '<td data-l="' + L("公式単発", "Official single") + '" class="num">' + esc(singleDisp) + "</td>" +
+            '<td data-l="' + L("公式平均", "Official average") + '" class="num">' + fmtTime(r.average, r.event) + "</td>" +
+            '<td data-l="' + L("単発の評価（練習時）", "Single rating") + '" class="cell-main">' + (r.note ? '<span class="vna">' + esc(noteText(r.note)) + "</span>" : verdictHTML(r.sVerdict, r.sRef != null ? fmtTime(r.sRef, r.event) : null, r.sVerdict && !r.reliable)) + "</td>" +
+            '<td data-l="' + L("平均の評価（練習時）", "Average rating") + '" class="cell-main">' + verdictHTML(r.aVerdict, r.aRef != null ? fmtTime(r.aRef, r.event) : null, r.aVerdict && !r.reliable) + "</td>" +
+            '<td data-l="' + L("成功率の評価", "Success-rate rating") + '" class="cell-main">' + verdictHTML(r.rVerdict, rateText(r.rText), r.rVerdict && !r.reliable) + "</td>" +
             "</tr>");
         });
         out.push("</tbody></table></div></div>");
 
         /* 方法 */
-        out.push('<div class="card method"><h2>評価の方法と注意</h2>' +
-          "<h3>比較の基準</h3><p>すべての比較は、各大会の<strong>前14日間</strong>の練習記録だけを使います（大会後の期間は本気で練習していないことがあるため使いません）。練習の日付は、このブラウザのタイムゾーンで判定しています。</p>" +
+        out.push('<div class="card method"><h2>' + L("評価の方法と注意", "Method & notes") + "</h2>" +
+          L("<h3>比較の基準</h3><p>すべての比較は、各大会の<strong>前14日間</strong>の練習記録だけを使います（大会後の期間は本気で練習していないことがあるため使いません）。練習の日付は、このブラウザのタイムゾーンで判定しています。</p>" +
           "<h3>単発の評価</h3><p>練習記録を「公式の1ラウンドと同じ試技数」ずつのブロックに区切り、各ブロックのベストの分布を作ります。公式単発がその分布の上位何％に位置するか（パーセンタイル）で判定します。90％以上=大上振れ／70％以上=上振れ／30％以上=実力通り／10％以上=下振れ／10％未満=大下振れ。（ ）内の「単発の期待値」はブロックベストの平均です。</p>" +
           "<h3>平均の評価</h3><p>大会前14日間の練習から ao5（mo3種目は mo3）をすべて計算し、その平均と公式平均の比率で判定します。比率0.95以下=大上振れ／0.98以下=上振れ／1.02以下=実力通り／1.05以下=下振れ／それ以上=大下振れ。公式平均が成立しなかった行は平均の評価を行いません。</p>" +
           "<h3>成功率の評価（目隠し系のみ）</h3><p>公式の成功率と大会前14日間の練習の成功率を比べ、差が+15pt以上=大上振れ／+5pt以上=上振れ／±5pt未満=実力通り／−5pt以下=下振れ／−15pt以下=大下振れ。複数目隠しは練習と比較しないため評価対象外です。</p>" +
@@ -914,9 +963,20 @@
           "<li>セッションと種目の対応づけは、csTimerのスクランブル種別から自動推定しています。パート練習などのセッションが混ざると判定がぶれます。「対象外」の設定を確認してください。</li>" +
           "<li>csTimerのエクスポート値には+2ペナルティの2秒が含まれている前提で計算しています。</li>" +
           "<li>最少手数（FMC）は、タイマー側の記録形式によっては正しく比較できない場合があります。</li>" +
-          "</ul></div>");
+          "</ul>",
+          "<h3>Baseline</h3><p>Every comparison uses only practice from the <strong>14 days before</strong> each competition (post-competition periods are excluded, since practice may not be serious then). Practice dates are judged in this browser's time zone.</p>" +
+          "<h3>Single rating</h3><p>Practice solves are split into blocks of the same number of attempts as one official round, and the distribution of block bests is built. The official single is rated by its percentile in that distribution: ≥90% = huge overperformance / ≥70% = overperformance / ≥30% = as expected / ≥10% = underperformance / below 10% = huge underperformance. The \"expected single\" in parentheses is the mean of the block bests.</p>" +
+          "<h3>Average rating</h3><p>All ao5 values (mo3 for mo3 events) from the 14 days of practice before the competition are computed, and the official average is rated by its ratio to their mean: ratio ≤0.95 = huge overperformance / ≤0.98 = overperformance / ≤1.02 = as expected / ≤1.05 = underperformance / above that = huge underperformance. Rows where no official average was set get no average rating.</p>" +
+          "<h3>Success-rate rating (blindfolded events only)</h3><p>The official success rate is compared with the practice success rate from the preceding 14 days: difference ≥+15pt = huge overperformance / ≥+5pt = overperformance / within ±5pt = as expected / ≤−5pt = underperformance / ≤−15pt = huge underperformance. Multi-Blind is not compared with practice and is not rated.</p>" +
+          "<h3>Overall rating in the by-event table</h3><p>The by-event score is the mean of all rating cells for that event: ≥+1.25 = huge overperformance / ≥+0.40 = overperformance / −0.40 to +0.40 = as expected / down to −1.25 = underperformance / below that = huge underperformance.</p>" +
+          "<h3>Notes</h3><ul>" +
+          "<li>Ratings based on fewer than 15 valid practice solves in the 14-day window are marked \"*indicative\". Treat them as a rough guide, not a verdict.</li>" +
+          "<li>Session-to-event mapping is inferred automatically from csTimer scramble types. Partial-practice sessions mixed in will skew the ratings — check the \"Exclude\" settings.</li>" +
+          "<li>Calculations assume csTimer export values already include the 2 seconds of +2 penalties.</li>" +
+          "<li>Fewest Moves (FMC) may not compare correctly depending on how the timer recorded it.</li>" +
+          "</ul>") + "</div>");
 
-        out.push('<div class="row no-print" style="margin-top:4px"><button type="button" class="secondary" id="dlBtn">レポートをHTMLでダウンロード</button></div>');
+        out.push('<div class="row no-print" style="margin-top:4px"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + "</button></div>");
 
         var rep = el("report");
         rep.innerHTML = out.join("");
@@ -929,12 +989,12 @@
         var byEv = {};
         rows.forEach(function (r) { (byEv[r.event] = byEv[r.event] || []).push(r); });
         var keys = RADAR_ORDER.filter(function (k) { return byEv[k]; });
-        var h = '<table class="sum-table"><thead><tr><th>種目</th><th class="num">出場</th><th class="num">スコア</th><th class="num">上振れ</th><th class="num">実力通り</th><th class="num">下振れ</th></tr></thead><tbody>';
+        var h = '<table class="sum-table"><thead><tr><th>' + L("種目", "Event") + '</th><th class="num">' + L("出場", "Entries") + '</th><th class="num">' + L("スコア", "Score") + '</th><th class="num">' + L("上振れ", "Above") + '</th><th class="num">' + L("実力通り", "As expected") + '</th><th class="num">' + L("下振れ", "Below") + "</th></tr></thead><tbody>";
         keys.forEach(function (k) {
           var rs = byEv[k], agg = aggregate(rs);
-          h += "<tr><td>" + esc(EVENTS[k].label) + '</td><td data-l="出場" class="num">' + rs.length + '</td>' +
-            '<td data-l="スコア" class="num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + "</td>" +
-            '<td data-l="上振れ" class="num">' + agg.cells.up + '</td><td data-l="実力通り" class="num">' + agg.cells.flat + '</td><td data-l="下振れ" class="num">' + agg.cells.down + "</td></tr>";
+          h += "<tr><td>" + esc(evLabel(k)) + '</td><td data-l="' + L("出場", "Entries") + '" class="num">' + rs.length + '</td>' +
+            '<td data-l="' + L("スコア", "Score") + '" class="num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + "</td>" +
+            '<td data-l="' + L("上振れ", "Above") + '" class="num">' + agg.cells.up + '</td><td data-l="' + L("実力通り", "As expected") + '" class="num">' + agg.cells.flat + '</td><td data-l="' + L("下振れ", "Below") + '" class="num">' + agg.cells.down + "</td></tr>";
         });
         return h + "</tbody></table>";
       }
@@ -949,11 +1009,12 @@
         var byQ = {};
         comps.forEach(function (c) {
           var d = new Date(c.date + "T00:00:00");
-          var q = d.getFullYear() + "年" + (Math.floor(d.getMonth() / 3) + 1) + "Q";
+          var qNum = Math.floor(d.getMonth() / 3) + 1;
+          var q = L(d.getFullYear() + "年" + qNum + "Q", d.getFullYear() + " Q" + qNum);
           c.quarter = q;
           (byQ[q] = byQ[q] || []).push(c);
         });
-        var h = '<div class="period-table-wrap"><table class="period-table"><thead><tr><th>日付</th><th>大会</th><th class="num">評価</th><th class="num">スコア</th><th>総合評価</th><th class="num">上振れ</th><th class="num">実力通り</th><th class="num">下振れ</th></tr></thead><tbody>';
+        var h = '<div class="period-table-wrap"><table class="period-table"><thead><tr><th>' + L("日付", "Date") + '</th><th>' + L("大会", "Competition") + '</th><th class="num">' + L("評価", "Ratings") + '</th><th class="num">' + L("スコア", "Score") + '</th><th>' + L("総合評価", "Overall") + '</th><th class="num">' + L("上振れ", "Above") + '</th><th class="num">' + L("実力通り", "As expected") + '</th><th class="num">' + L("下振れ", "Below") + "</th></tr></thead><tbody>";
         var curQ = null;
         comps.forEach(function (c) {
           if (c.quarter !== curQ) {
@@ -961,7 +1022,7 @@
             var qRows = [];
             byQ[curQ].forEach(function (cc) { qRows = qRows.concat(cc.rows); });
             var qAgg = aggregate(qRows), qt = qAgg.cells.total || 1;
-            h += '<tr class="q-row"><td colspan="8">' + esc(curQ) + " 小計 — スコア " + (qAgg.mean == null ? "—" : fmtScore(qAgg.mean)) + "／評価 " + qAgg.cells.total + " 件（上振れ " + Math.round(100 * qAgg.cells.up / qt) + "%・実力通り " + Math.round(100 * qAgg.cells.flat / qt) + "%・下振れ " + Math.round(100 * qAgg.cells.down / qt) + "%）</td></tr>";
+            h += '<tr class="q-row"><td colspan="8">' + L(esc(curQ) + " 小計 — スコア " + (qAgg.mean == null ? "—" : fmtScore(qAgg.mean)) + "／評価 " + qAgg.cells.total + " 件（上振れ " + Math.round(100 * qAgg.cells.up / qt) + "%・実力通り " + Math.round(100 * qAgg.cells.flat / qt) + "%・下振れ " + Math.round(100 * qAgg.cells.down / qt) + "%）", esc(curQ) + " subtotal — score " + (qAgg.mean == null ? "—" : fmtScore(qAgg.mean)) + " / " + qAgg.cells.total + " ratings (above " + Math.round(100 * qAgg.cells.up / qt) + "%, as expected " + Math.round(100 * qAgg.cells.flat / qt) + "%, below " + Math.round(100 * qAgg.cells.down / qt) + "%)") + "</td></tr>";
           }
           var agg = aggregate(c.rows);
           var ov = overallVerdict(agg.mean);
@@ -970,7 +1031,7 @@
             '<td class="comp-name"><a href="https://www.worldcubeassociation.org/competitions/' + esc(c.comp) + '" target="_blank" rel="noopener">' + esc(c.name) + "</a></td>" +
             '<td class="num">' + agg.cells.total + "</td>" +
             '<td class="num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + "</td>" +
-            "<td>" + (ov ? '<span class="verdict ' + VCLASS[ov] + '">' + ov + "</span>" : '<span class="vna">評価なし</span>') + "</td>" +
+            "<td>" + (ov ? '<span class="verdict ' + VCLASS[ov] + '">' + esc(tv(ov)) + "</span>" : '<span class="vna">' + L("評価なし", "Not rated") + "</span>") + "</td>" +
             '<td class="num">' + agg.cells.up + "</td>" +
             '<td class="num">' + agg.cells.flat + "</td>" +
             '<td class="num">' + agg.cells.down + "</td></tr>";
@@ -983,14 +1044,14 @@
         var byEv = {};
         rows.forEach(function (r) { (byEv[r.event] = byEv[r.event] || []).push(r); });
         var keys = RADAR_ORDER.filter(function (k) { return byEv[k] && aggregate(byEv[k]).mean != null; });
-        if (keys.length < 3) return '<p class="hint">レーダーチャートは、評価できた種目が3つ以上あると表示されます。</p>';
+        if (keys.length < 3) return '<p class="hint">' + L("レーダーチャートは、評価できた種目が3つ以上あると表示されます。", "The radar chart appears once at least 3 events could be rated.") + "</p>";
         var W = 400, C = W / 2, R = 128;
         function pt(i, score) {
           var ang = -Math.PI / 2 + i * 2 * Math.PI / keys.length;
           var rr = (score + 2) / 4 * R;
           return [C + rr * Math.cos(ang), C + rr * Math.sin(ang)];
         }
-        var s = ['<svg viewBox="0 0 ' + W + " " + W + '" role="img" aria-label="種目別レーダーチャート">'];
+        var s = ['<svg viewBox="0 0 ' + W + " " + W + '" role="img" aria-label="' + L("種目別レーダーチャート", "Radar chart by event") + '">'];
         [-2, -1, 0, 1, 2].forEach(function (lv) {
           var pts = keys.map(function (k, i) { return pt(i, lv).join(","); }).join(" ");
           s.push('<polygon points="' + pts + '" fill="none" stroke="' + (lv === 0 ? "var(--ink)" : "var(--line)") + '" stroke-width="' + (lv === 0 ? 1.6 : 1) + '"/>');
@@ -999,7 +1060,7 @@
           var p = pt(i, 2), lp = pt(i, 2.62);
           s.push('<line x1="' + C + '" y1="' + C + '" x2="' + p[0] + '" y2="' + p[1] + '" stroke="var(--line)"/>');
           var anchor = Math.abs(lp[0] - C) < 12 ? "middle" : (lp[0] > C ? "start" : "end");
-          s.push('<text x="' + lp[0] + '" y="' + (lp[1] + 4) + '" text-anchor="' + anchor + '" font-size="11.5" fill="var(--muted)" font-weight="700">' + esc(EVENTS[k].label.replace("3×3×3", "3×3")) + "</text>");
+          s.push('<text x="' + lp[0] + '" y="' + (lp[1] + 4) + '" text-anchor="' + anchor + '" font-size="11.5" fill="var(--muted)" font-weight="700">' + esc(evLabel(k).replace("3×3×3", "3×3").replace("3x3x3", "3x3").replace(" Blindfolded", " BLD").replace(" One-Handed", " OH").replace(" Fewest Moves", " FMC").replace(" Multi-Blind", " MBLD")) + "</text>");
         });
         var poly = keys.map(function (k, i) { return pt(i, aggregate(byEv[k]).mean).join(","); }).join(" ");
         s.push('<polygon points="' + poly + '" fill="var(--accent)" fill-opacity="0.22" stroke="var(--accent)" stroke-width="2"/>');
@@ -1016,12 +1077,12 @@
         var comps = Object.keys(byComp).map(function (k) { return byComp[k]; })
           .filter(function (c) { return aggregate(c.rows).mean != null; })
           .sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-        if (comps.length < 2) return '<p class="hint">推移グラフは、評価できた大会が2つ以上あると表示されます。</p>';
+        if (comps.length < 2) return '<p class="hint">' + L("推移グラフは、評価できた大会が2つ以上あると表示されます。", "The trend chart appears once at least 2 competitions could be rated.") + "</p>";
         var W = 560, H = 240, PL = 34, PR = 10, PT = 14, PB = 34;
         var iw = W - PL - PR, ih = H - PT - PB;
         function X(i) { return PL + (comps.length === 1 ? iw / 2 : i * iw / (comps.length - 1)); }
         function Y(v) { return PT + (2 - v) / 4 * ih; }
-        var s = ['<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="大会ごとの本番力スコア推移">'];
+        var s = ['<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + L("大会ごとの本番力スコア推移", "Performance score trend by competition") + '">'];
         [-2, -1, 0, 1, 2].forEach(function (lv) {
           s.push('<line x1="' + PL + '" y1="' + Y(lv) + '" x2="' + (W - PR) + '" y2="' + Y(lv) + '" stroke="' + (lv === 0 ? "var(--ink)" : "var(--line)") + '" stroke-width="' + (lv === 0 ? 1.4 : 1) + '"/>');
           s.push('<text x="' + (PL - 6) + '" y="' + (Y(lv) + 4) + '" text-anchor="end" font-size="11" fill="var(--muted)">' + (lv > 0 ? "+" + lv : lv) + "</text>");
@@ -1039,6 +1100,72 @@
         return s.join("");
       }
 
+      /* ================= 言語切替の適用 ================= */
+      function applyStatic() {
+        document.documentElement.lang = LANG === "en" ? "en" : "ja";
+        el("langJa").classList.toggle("active", LANG === "ja");
+        el("langEn").classList.toggle("active", LANG === "en");
+        el("leadText").innerHTML = L(
+          "<strong>本番力分析ツール</strong> — WCA IDを入力して公式記録を取得し、csTimerのエクスポートファイルと組み合わせると、「公式大会でどれだけ実力を出せたか」を大会・種目ごとに判定するレポートが作れます。比較に使うのは<strong>大会前14日間の練習</strong>のみ。計算はすべてこのブラウザの中で完結し、アップロードした練習データが外部に送信されることはありません。",
+          "<strong>Competition performance analyzer</strong> — Enter a WCA ID to fetch official results, combine them with a csTimer export file, and get a report that rates, for each competition and event, how well you performed compared with your practice. Only <strong>practice from the 14 days before each competition</strong> is used for comparison. Everything is computed in your browser; your practice data is never sent anywhere.");
+        el("step1Title").textContent = L("WCA IDで公式記録を取得", "Fetch official results by WCA ID");
+        el("wcaId").placeholder = L("例: 2025TAKA04", "e.g. 2025TAKA04");
+        el("fetchBtn").textContent = L("公式記録を取得", "Fetch official results");
+        el("fetchHint").textContent = L(
+          "公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と「公式記録を取得」の実行・成功・エラー（形式エラー含む）の回数だけを、固定の合図で集計しています。入力したWCA IDや練習データは集計先に送信されません。",
+          "Official results are fetched directly from the official WCA API (www.worldcubeassociation.org). Your uploaded practice data is never sent anywhere. If the connection fails, try switching between Wi-Fi and mobile data, temporarily disabling ad blockers or VPN, or using another browser. For usage statistics, only page views and the counts of fetch runs / successes / errors (including invalid-ID errors) are tallied via fixed signals — the WCA ID you enter and your practice data are never sent to the analytics service.");
+        el("step2Title").textContent = L("練習データを読み込む（csTimer）", "Load practice data (csTimer)");
+        el("guideTitle").textContent = L("csTimerの手順", "How to export from csTimer");
+        el("guideOpenBtn").textContent = L("csTimerを開く", "Open csTimer");
+        el("guideLi1b").textContent = L("（別タブで開きます）", " (opens in a new tab)");
+        el("guideLi2").textContent = L("csTimerにログインする", "Log in to csTimer");
+        el("guideLi3").textContent = L("「Export」→「Export to File」（日本語版では「ファイルにエクスポート」）でファイルを書き出す", "Choose \"Export\" → \"Export to File\" to download the export file");
+        el("guideLi4").textContent = L("書き出したファイルを下のボタンで選ぶ（PCなら枠内へのドラッグ＆ドロップでもOK）", "Select the exported file with the button below (on a computer, you can also drag & drop it into the box)");
+        el("guideHint").textContent = L("種目はファイルのスクランブル種別から自動で対応づけます。次のステップで確認・変更できます。", "Events are matched automatically from the scramble types in the file. You can review and change the mapping in the next step.");
+        el("pickBtnLabel").textContent = L("ファイルを選ぶ", "Choose file");
+        el("dropNote").textContent = L("スマホ・タブレットでは上のボタンから選択してください。PCではここにドラッグ＆ドロップもできます。", "On a phone or tablet, use the button above. On a computer, you can also drag & drop files here.");
+        el("step3Title").textContent = L("セッションと種目の対応を確認", "Check the session-to-event mapping");
+        el("step3Hint").textContent = L("練習専用セッション（パート練習・分析用など）は「対象外」にしてください。対応づけを変えると、その場でレポートを作り直します。", "Set practice-only sessions (partial practice, analysis, etc.) to \"Exclude\". Changing the mapping rebuilds the report on the spot.");
+        el("sessThName").textContent = L("セッション名", "Session name");
+        el("sessThCount").textContent = L("試技数", "Attempts");
+        el("sessThEvent").textContent = L("対応する種目", "Mapped event");
+        el("genBtn").textContent = L("レポートを作成", "Generate report");
+        el("usageSection").setAttribute("aria-label", L("利用状況の割合について", "About the usage ratios"));
+        el("usageTitle").textContent = L("利用状況の割合について", "About the usage ratios");
+        el("usageIntro").textContent = L(
+          "検索がどう終わったかは、結果の種類ごとに固定の合図だけを送って数えています。割合は作成者だけが見られる GoatCounter の集計から、次のように出します。ページ自体に数値は表示されません。",
+          "How each search ended is counted by sending only a fixed signal per outcome type. Ratios are computed from the GoatCounter tally, visible only to the author, as follows. No numbers are shown on this page itself.");
+        el("usageThCat").textContent = L("区分", "Category");
+        el("usageThCount").textContent = L("数え方", "What is counted");
+        el("usageThRatio").textContent = L("割合の出し方", "Ratio");
+        el("usageBody").innerHTML =
+          "<tr><td><strong>" + L("閲覧", "Page views") + "</strong></td><td>" + L("ページが開かれた回数", "Times this page was opened") + "</td><td>" + L("—（分母）", "— (denominator)") + "</td></tr>" +
+          "<tr><td><strong>" + L("検索を実行", "Searches run") + "</strong></td><td>" + L("「公式記録を取得」が押された回数（合図: ", "Times \"Fetch official results\" was pressed (signal: ") + '<span class="num">search</span>' + L("）", ")") + "</td><td>" + L("検索実行 ÷ 閲覧", "Searches ÷ views") + "</td></tr>" +
+          "<tr><td><strong>" + L("検索が成功", "Searches succeeded") + "</strong></td><td>" + L("公式記録が取得できた回数（合図: ", "Times official results were fetched (signal: ") + '<span class="num">search-success</span>' + L("）", ")") + "</td><td>" + L("成功 ÷ 検索実行", "Succeeded ÷ searches") + "</td></tr>" +
+          "<tr><td><strong>" + L("エラーで終了", "Ended in error") + "</strong></td><td>" + L("見つからない／記録なし／通信失敗で終わった回数（合図: ", "Times a search ended with not found / no results / connection failure (signal: ") + '<span class="num">search-error</span>' + L("）", ")") + "</td><td>" + L("エラー ÷ 検索実行", "Errors ÷ searches") + "</td></tr>" +
+          "<tr><td><strong>" + L("形式エラーで終了", "Ended in invalid-ID error") + "</strong></td><td>" + L("WCA IDの形式が違って実行できなかった回数（合図: ", "Times the WCA ID format was wrong so the search could not run (signal: ") + '<span class="num">search-invalid</span>' + L("）", ")") + "</td><td>" + L("形式エラー ÷ 検索実行", "Invalid ÷ searches") + "</td></tr>" +
+          "<tr><td><strong>" + L("開いただけで何もしなかった", "Opened but did nothing") + "</strong></td><td>" + L("閲覧のうち検索を実行しなかった分（目安）", "Views where no search was run (estimate)") + "</td><td>" + L("（閲覧 − 検索実行）÷ 閲覧", "(Views − searches) ÷ views") + "</td></tr>";
+        el("usageNote").textContent = L(
+          "成功＋エラー＋形式エラーが検索実行と一致するのが目安です。「何もしなかった」は、同じ人が複数回検索したり再読み込みしたりすると多少ずれるため目安として扱います。毎日の報告では、この区分で閲覧数に対する割合と、検索実行に対する成功／エラーの割合を併記できます。",
+          "Succeeded + errors + invalid should roughly add up to searches run. \"Did nothing\" is only an estimate, since repeat searches and reloads by the same person shift it. The daily report can include these ratios against views, and the success / error ratios against searches run.");
+        el("footText").innerHTML = L(
+          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。各割合の出し方は上の「利用状況の割合について」をご覧ください。<br />作成者　ゆめもぐら",
+          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies page views and the counts of search runs / successes / errors / invalid-ID errors (only fixed signals are sent; WCA IDs and practice data are never transmitted). The tallies are visible only to the author. See \"About the usage ratios\" above for how each ratio is computed.<br />Created by yumemogura");
+        updateGenBtn();
+        if (state.sessions.length) renderSessions();
+        if (state.results && state.sessions.length) syncSessions();
+        if (state.report) renderReport();
+      }
+      function setLang(l, save) {
+        if (l !== "ja" && l !== "en") return;
+        LANG = l;
+        if (save) { try { window.localStorage.setItem(LANG_KEY, l); } catch (e) { /* 保存できなくても切替は続行 */ } }
+        applyStatic();
+      }
+      el("langJa").addEventListener("click", function () { setLang("ja", true); });
+      el("langEn").addEventListener("click", function () { setLang("en", true); });
+      applyStatic();
+
       /* ================= ダウンロード ================= */
       function downloadReport() {
         var styleText = "";
@@ -1048,8 +1175,8 @@
             for (var j = 0; j < rules.length; j++) styleText += rules[j].cssText + "\n";
           } catch (e) { /* 外部フォントのCSSは読み飛ばす */ }
         }
-        var html = '<!doctype html><html lang="ja"><head><meta charset="utf-8">' +
-          "<title>本番力レポート（" + esc(state.wcaId) + '）</title><style>' + styleText + "</style></head>" +
+        var html = '<!doctype html><html lang="' + (LANG === "en" ? "en" : "ja") + '"><head><meta charset="utf-8">' +
+          "<title>" + L("PB or Fluke? 本番力レポート（", "PB or Fluke? — Performance report (") + esc(state.wcaId) + L("）", ")") + '</title><style>' + styleText + "</style></head>" +
           '<body><main class="wrap">' + el("report").innerHTML + "</main></body></html>";
         var blob = new Blob([html], { type: "text/html" });
         var a = document.createElement("a");
