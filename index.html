@@ -276,6 +276,14 @@
       .lang-switch button:last-child { border-radius: 0 999px 999px 0; }
       .lang-switch button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
       .lang-switch button:hover:not(.active) { background: var(--panel2); color: var(--ink); }
+      .anon-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; }
+      .anon-toggle { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font-weight: 700; font-size: 13.5px; color: var(--ink); }
+      .anon-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+      .anon-track { width: 40px; height: 22px; flex: 0 0 40px; border-radius: 999px; background: #dfe2e8; border: 1px solid var(--line-strong); position: relative; transition: background .15s; }
+      .anon-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.25); transition: left .15s; }
+      .anon-toggle input:checked ~ .anon-track { background: var(--accent); border-color: var(--accent); }
+      .anon-toggle input:checked ~ .anon-track .anon-thumb { left: 20px; }
+      .anon-toggle input:focus-visible ~ .anon-track { outline: 2px solid var(--ink); outline-offset: 2px; }
       .share-panel { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-top: 14px; background: #fcfcfd; }
       .share-panel h3 { font-size: 14px; margin: 0 0 4px; }
       .hidden { display: none !important; }
@@ -436,7 +444,8 @@
         sessions: [], /* {key,name,scrType,event,attempts:[{ts,t}]} t=秒 or null(DNF) */
         csSessions: [], loadedNames: [],
         report: null,
-        sharedView: false, sharedGenDate: null, shareLink: null
+        sharedView: false, sharedGenDate: null, shareLink: null,
+        shareLinkAnon: null, anonShare: false, anonymous: false
       };
 
       function el(id) { return document.getElementById(id); }
@@ -808,7 +817,7 @@
         if (noPractice > 0) {
           showMsg("genWarn", L(noPractice + " 行は大会前14日間の練習データがなく評価できませんでした。csTimerの記録期間外の大会や、セッションの対応づけが「対象外」になっている種目が該当します。", noPractice + " row(s) could not be rated because there was no practice data in the 14 days before the competition — competitions outside your csTimer data range, or events whose sessions are set to \"Exclude\"."));
         }
-        state.shareLink = null; /* 新しいレポートでは共有リンクを作り直す */
+        state.shareLink = null; state.shareLinkAnon = null; state.anonymous = false; /* 新しいレポートでは共有リンクを作り直す */
         state.report = { rows: rows, compList: compList };
         renderReport();
       }
@@ -890,7 +899,11 @@
         rows.forEach(function(r){ evSet[r.event]=true; });
         var out = [];
         out.push('<div class="card">');
-        out.push("<h2>" + L("PB or Fluke? — " + esc(state.personName || state.wcaId) + "（" + esc(state.wcaId) + "）の本番力レポート", "PB or Fluke? — Competition performance report for " + esc(state.personName || state.wcaId) + " (" + esc(state.wcaId) + ")") + "</h2>");
+        if (state.sharedView && state.anonymous) {
+          out.push("<h2>" + L("PB or Fluke? — 匿名のレポート", "PB or Fluke? — Anonymous report") + "</h2>");
+        } else {
+          out.push("<h2>" + L("PB or Fluke? — " + esc(state.personName || state.wcaId) + "（" + esc(state.wcaId) + "）の本番力レポート", "PB or Fluke? — Competition performance report for " + esc(state.personName || state.wcaId) + " (" + esc(state.wcaId) + ")") + "</h2>");
+        }
         out.push('<p class="hint">' + L("対象: WCA公式 " + Object.keys(comps).length + " 大会・" + Object.keys(evSet).length + " 種目／評価 " + agg.cells.total + " 件。比較に使った練習は各大会の前14日間のみです。下に <strong style=\"color:var(--ink)\">種目別明細（1行 = 1種目）</strong> と <strong style=\"color:var(--ink)\">大会別明細（1行 = 1大会 × 1種目）</strong> の2つの表があります。", "Scope: " + Object.keys(comps).length + " WCA competitions, " + Object.keys(evSet).length + " events, " + agg.cells.total + " ratings. Only practice from the 14 days before each competition is used for comparison. Below are two tables: <strong style=\"color:var(--ink)\">by event (one row per event)</strong> and <strong style=\"color:var(--ink)\">by competition (one row per competition × event)</strong>.") + "</p>");
         out.push('<div class="kpis">');
         out.push('<div class="kpi"><div class="v num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + '</div><div class="k">' + L("本番力スコア（全評価の平均）", "Performance score (mean of all ratings)") + "</div></div>");
@@ -967,7 +980,9 @@
           "<li>Fewest Moves (FMC) may not compare correctly depending on how the timer recorded it.</li>" +
           "</ul>") + "</div>");
 
-        out.push('<div class="no-print" style="margin-top:4px"><div class="row"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + '</button><button type="button" id="shareXBtn">' + L("Xで共有", "Share on X") + '</button><button type="button" class="secondary" id="linkBtn">' + L("共有リンクを作る", "Create share link") + '</button><span class="hint">' + L("結果のサマリー入りで投稿の下書きが開きます（自動では投稿されません）", "Opens a post draft with your result summary — nothing is posted automatically") + '</span></div><p class="hint" style="margin:8px 0 0">' + L("共有リンクは、リンクを知っている人なら誰でもこのレポートを見られます。送る相手に注意してください。", "Anyone who knows the share link can view this report — please be careful who you send it to.") + '</p><div id="linkPanel" class="share-panel hidden" aria-live="polite"></div></div>');
+        out.push('<div class="no-print" style="margin-top:4px"><div class="row"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + '</button><button type="button" id="shareXBtn">' + L("Xで共有", "Share on X") + '</button><button type="button" class="secondary" id="linkBtn">' + L("共有リンクを作る", "Create share link") + '</button><span class="hint">' + L("結果のサマリー入りで投稿の下書きが開きます。共有リンクを作成済みの場合は、そのリンクがURLに入ります（自動では投稿されません）", "Opens a post draft with your result summary. If you have already created a share link, that link is used as the URL (nothing is posted automatically)") + '</span></div>' +
+          '<div class="anon-row"><label class="anon-toggle"><input type="checkbox" id="anonShareChk"><span class="anon-track"><span class="anon-thumb"></span></span><span>' + L("匿名で共有する", "Share anonymously") + '</span></label><span class="hint">' + L("チェックすると、共有リンクに氏名とWCA IDを含めず、開いた画面でも表示しません（大会名・日付・結果の数値はそのまま残ります）。", "When checked, the share link contains no name or WCA ID, and the viewing page does not show them either (competition names, dates, and result values remain).") + '</span></div>' +
+          '<p class="hint" style="margin:8px 0 0">' + L("共有リンクは、リンクを知っている人なら誰でもこのレポートを見られます。送る相手に注意してください。", "Anyone who knows the share link can view this report — please be careful who you send it to.") + '</p><div id="linkPanel" class="share-panel hidden" aria-live="polite"></div></div>');
 
         var rep = el("report");
         rep.innerHTML = out.join("");
@@ -975,6 +990,19 @@
         el("dlBtn").addEventListener("click", downloadReport);
         el("shareXBtn").addEventListener("click", shareOnX);
         el("linkBtn").addEventListener("click", createShareLink);
+        var anonChk = el("anonShareChk");
+        if (anonChk) {
+          anonChk.checked = !!state.anonShare;
+          anonChk.addEventListener("change", function () {
+            state.anonShare = this.checked;
+            /* 匿名設定と食い違う既存リンクは破棄する（X共有で誤って使われないように） */
+            if (state.shareLink && state.shareLinkAnon !== state.anonShare) {
+              state.shareLink = null; state.shareLinkAnon = null;
+              var lp = el("linkPanel");
+              if (lp) { lp.classList.add("hidden"); lp.innerHTML = ""; }
+            }
+          });
+        }
         rep.scrollIntoView({ behavior: "smooth", block: "start" });
       }
 
@@ -1144,8 +1172,9 @@
 
       /* ================= Xで共有 =================
          結果のサマリー（スコア・総合評価・上振れ率など）入りの投稿文で
-         Xの投稿画面（intent）を開く。自動では投稿されない。
-         共有リンクを生成済みの場合は、投稿文のURLがレポート専用リンクになる。 */
+         Xの投稿画面（intent）を開く。自動では投稿されない。文面は変更しない。
+         URLは、「共有リンクを作る」で手動作成済みのリンクがあればそのURL、
+         なければ通常のサイトURLを使う（X共有のたびに自動生成はしない）。 */
       function buildShareParts() {
         var rows = state.report.rows;
         var agg = aggregate(rows);
@@ -1176,14 +1205,20 @@
          （フラグメントはサーバーへ送信もされない）。
          リンクを開くとフラグメントを復号し、閲覧専用でレポートを表示する。
          ペイロード形式 v1:
-           {v:1, id:WCA ID, n:氏名, l:"ja"|"en", g:作成日, r:[行...]}
+           {v:1, id:WCA ID, n:氏名, a:匿名フラグ(1=匿名), l:"ja"|"en", g:作成日, r:[行...]}
+           匿名時は id と n を空文字にし、a:1 を付ける（氏名・WCA IDはリンクに含めない）。
            行 = [大会ID, 大会名, 日付, 種目, 単発, 平均, MBF, 単発評価, 単発期待値,
                  単発パーセンタイル, 平均評価, 平均参照値, 成功率評価, 成功率参照,
                  参考フラグ, 備考, スコア, 評価セル数, 窓内試技数, 有効ソルブ数]
            MBF = null | [raw, solved, total, time, text]
            成功率参照 = null | [公式%, 練習%] */
       function r4(x) { return x == null || !isFinite(x) ? null : Math.round(x * 10000) / 10000; }
-      function buildSharePayload() {
+      function effectiveAnon() {
+        /* 匿名の共有レポートを閲覧中なら、そのレポートから作るリンクも匿名にする */
+        return !!state.anonShare || !!(state.sharedView && state.anonymous);
+      }
+      function buildSharePayload(anon) {
+        if (anon == null) anon = effectiveAnon();
         var rows = state.report.rows.map(function (r) {
           return [
             r.comp, r.compName, r.date, r.event,
@@ -1197,7 +1232,7 @@
         });
         var now = new Date();
         var g = now.getFullYear() + "-" + ("0" + (now.getMonth() + 1)).slice(-2) + "-" + ("0" + now.getDate()).slice(-2);
-        return { v: 1, id: state.wcaId, n: state.personName || "", l: LANG, g: g, r: rows };
+        return { v: 1, id: anon ? "" : state.wcaId, n: anon ? "" : (state.personName || ""), a: anon ? 1 : 0, l: LANG, g: g, r: rows };
       }
       function b64urlEncode(bytes) {
         var bin = "", i, chunk = 0x8000;
@@ -1240,6 +1275,7 @@
         var panel = el("linkPanel");
         if (!panel) return;
         var h = "<h3>" + L("共有リンクを作成しました", "Your share link is ready") + "</h3>" +
+          (state.shareLinkAnon ? '<p class="hint" style="margin:0 0 6px">' + L("匿名リンクです：氏名とWCA IDは含まれていません。", "This is an anonymous link: it contains no name or WCA ID.") + "</p>" : "") +
           '<p class="hint" style="margin:0 0 10px">' + L("リンクを知っている人は誰でもこのレポートを見られます。リンクには集計済みのレポートデータだけが埋め込まれていて、csTimerの生データは含まれません。サーバーには保存されないため、期限切れや取り消しはできません。", "Anyone who knows this link can view the report. The link embeds only the aggregated report data — no raw csTimer data — and nothing is stored on a server, so the link never expires and cannot be revoked.") + "</p>" +
           '<textarea class="link-url" id="linkUrlText" readonly rows="3" aria-label="' + L("共有リンク", "Share link") + '">' + esc(url) + "</textarea>" +
           '<div class="row" style="margin-top:12px"><button type="button" id="linkCopyBtn">' + L("リンクをコピー", "Copy link") + '</button><a class="openbtn" href="' + esc(url) + '" target="_blank" rel="noopener">' + L("リンクを開く", "Open link") + '</a><span class="hint">' + L("Xで共有するときも、このレポート専用リンクが投稿文に入ります。", "When you share on X, this report link is the URL included in the draft.") + "</span></div>";
@@ -1263,9 +1299,11 @@
         var btn = el("linkBtn");
         var orig = btn ? btn.textContent : "";
         if (btn) { btn.disabled = true; btn.textContent = L("作成中…", "Creating…"); }
-        encodeSharePayload(buildSharePayload()).then(function (encoded) {
+        var anon = effectiveAnon();
+        encodeSharePayload(buildSharePayload(anon)).then(function (encoded) {
           var url = SITE_URL + "#r=" + encoded;
           state.shareLink = url;
+          state.shareLinkAnon = anon;
           if (btn) { btn.disabled = false; btn.textContent = orig; }
           showLinkPanel(url);
         }).catch(function () {
@@ -1279,7 +1317,8 @@
       }
       function payloadToState(payload, encoded) {
         if (!payload || payload.v !== 1) throw new Error("format");
-        if (typeof payload.id !== "string" || !payload.id || payload.id.length > 20) throw new Error("format");
+        if (typeof payload.id !== "string" || payload.id.length > 20) throw new Error("format");
+        if (!payload.id && payload.a !== 1) throw new Error("format"); /* IDが空なのは匿名リンクだけ */
         if (!Array.isArray(payload.r) || !payload.r.length || payload.r.length > 600) throw new Error("format");
         var rows = payload.r.map(function (a) {
           if (!Array.isArray(a) || a.length < 16) throw new Error("format");
@@ -1309,7 +1348,8 @@
           if (!seen[r.comp]) { seen[r.comp] = true; compList.push({ comp: r.comp, name: r.compName, start: r.date }); }
         });
         return {
-          wcaId: payload.id.toUpperCase(), personName: String(payload.n || ""),
+          anonymous: payload.a === 1,
+          wcaId: payload.id ? payload.id.toUpperCase() : "", personName: payload.a === 1 ? "" : String(payload.n || ""),
           genDate: (typeof payload.g === "string" && /^\d{4}-\d{2}-\d{2}$/.test(payload.g)) ? payload.g : null,
           rows: rows, compList: compList
         };
@@ -1318,7 +1358,7 @@
         var b = el("sharedBanner");
         if (!b) return;
         b.innerHTML = "<h2>" + L("共有レポートを表示しています（閲覧専用）", "Viewing a shared report (read-only)") + "</h2>" +
-          "<p>" + esc(state.personName ? state.personName + "（" + state.wcaId + "）" : state.wcaId) + L(" さんのレポートです。", "'s report.") +
+          "<p>" + (state.anonymous ? L("匿名のレポートです。", "This is an anonymous report. ") : esc(state.personName ? state.personName + "（" + state.wcaId + "）" : state.wcaId) + L(" さんのレポートです。", "'s report.")) +
           (state.sharedGenDate ? L("作成日: ", "Created: ") + esc(state.sharedGenDate) + "。 " : "") +
           L("このレポートのデータはリンク自体に埋め込まれており、サーバーには保存されていません。再計算や編集はできません。", "The report data is embedded in the link itself and is not stored on any server. It cannot be recalculated or edited.") + "</p>" +
           '<button type="button" id="sharedOwnBtn">' + L("自分のレポートを作る", "Create your own report") + "</button>";
@@ -1330,6 +1370,8 @@
         if (payload.l === "ja" || payload.l === "en") { LANG = payload.l; applyStatic(); }
         state.sharedView = true;
         state.sharedGenDate = data.genDate;
+        state.anonymous = !!data.anonymous;
+        if (data.anonymous) state.anonShare = true;
         state.wcaId = data.wcaId;
         state.personName = data.personName;
         state.shareLink = SITE_URL + "#r=" + encoded;
@@ -1342,7 +1384,10 @@
       function exitSharedView() {
         state.sharedView = false;
         state.sharedGenDate = null;
+        state.anonymous = false;
+        state.anonShare = false;
         state.shareLink = null;
+        state.shareLinkAnon = null;
         state.report = null;
         state.wcaId = ""; state.personName = "";
         var b = el("sharedBanner"); if (b) { b.classList.add("hidden"); b.innerHTML = ""; }
@@ -1376,13 +1421,14 @@
         var clone = el("report").cloneNode(true);
         var lp = clone.querySelector("#linkPanel");
         if (lp) lp.remove();
+        var dlId = state.wcaId || "anonymous";
         var html = '<!doctype html><html lang="' + (LANG === "en" ? "en" : "ja") + '"><head><meta charset="utf-8">' +
-          "<title>" + L("PB or Fluke? 本番力レポート（", "PB or Fluke? — Performance report (") + esc(state.wcaId) + L("）", ")") + '</title><style>' + styleText + "</style></head>" +
+          "<title>" + L("PB or Fluke? 本番力レポート（", "PB or Fluke? — Performance report (") + esc(dlId) + L("）", ")") + '</title><style>' + styleText + "</style></head>" +
           '<body><main class="wrap">' + clone.innerHTML + "</main></body></html>";
         var blob = new Blob([html], { type: "text/html" });
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "wca-performance-report-" + state.wcaId + ".html";
+        a.download = "wca-performance-report-" + dlId + ".html";
         document.body.appendChild(a);
         a.click();
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
