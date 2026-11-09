@@ -967,7 +967,7 @@
           "<li>Fewest Moves (FMC) may not compare correctly depending on how the timer recorded it.</li>" +
           "</ul>") + "</div>");
 
-        out.push('<div class="no-print" style="margin-top:4px"><div class="row"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + '</button><button type="button" id="shareXBtn">' + L("Xで共有", "Share on X") + '</button><button type="button" class="secondary" id="linkBtn">' + L("共有リンクを作る", "Create share link") + '</button><span class="hint">' + L("結果のサマリー入りで投稿の下書きが開きます（自動では投稿されません）", "Opens a post draft with your result summary — nothing is posted automatically") + '</span></div><p class="hint" style="margin:8px 0 0">' + L("共有リンクは、リンクを知っている人なら誰でもこのレポートを見られます。送る相手に注意してください。", "Anyone who knows the share link can view this report — please be careful who you send it to.") + '</p><div id="linkPanel" class="share-panel hidden" aria-live="polite"></div></div>');
+        out.push('<div class="no-print" style="margin-top:4px"><div class="row"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + '</button><button type="button" id="shareXBtn">' + L("Xで共有", "Share on X") + '</button><button type="button" class="secondary" id="linkBtn">' + L("共有リンクを作る", "Create share link") + '</button><span class="hint">' + L("結果のサマリー入りで投稿の下書きが開きます。URLはレポート専用リンクが自動で入ります（自動では投稿されません）", "Opens a post draft with your result summary — your report link is added automatically as the URL, and nothing is posted automatically") + '</span></div><p class="hint" style="margin:8px 0 0">' + L("共有リンクは、リンクを知っている人なら誰でもこのレポートを見られます。送る相手に注意してください。", "Anyone who knows the share link can view this report — please be careful who you send it to.") + '</p><div id="linkPanel" class="share-panel hidden" aria-live="polite"></div></div>');
 
         var rep = el("report");
         rep.innerHTML = out.join("");
@@ -1144,8 +1144,17 @@
 
       /* ================= Xで共有 =================
          結果のサマリー（スコア・総合評価・上振れ率など）入りの投稿文で
-         Xの投稿画面（intent）を開く。自動では投稿されない。
-         共有リンクを生成済みの場合は、投稿文のURLがレポート専用リンクになる。 */
+         Xの投稿画面（intent）を開く。自動では投稿されない。文面は変更しない。
+         URLは必ずレポート専用リンク（#r= 付き）にする: 未生成なら
+         「Xで共有」を押した時点で自動生成してから下書きを開く。 */
+      function ensureShareLink() {
+        if (state.shareLink) return Promise.resolve(state.shareLink);
+        return encodeSharePayload(buildSharePayload()).then(function (encoded) {
+          var url = SITE_URL + "#r=" + encoded;
+          state.shareLink = url;
+          return url;
+        });
+      }
       function buildShareParts() {
         var rows = state.report.rows;
         var agg = aggregate(rows);
@@ -1165,8 +1174,37 @@
       }
       function shareOnX() {
         if (!state.report) return;
-        var parts = buildShareParts();
-        window.open(parts.intentUrl, "_blank", "noopener");
+        if (state.shareLink) {
+          var ready = buildShareParts();
+          window.open(ready.intentUrl, "_blank", "noopener");
+          return;
+        }
+        /* ポップアップブロック対策: 非同期のリンク生成を待つ間、
+           先に空のタブを開いておき、生成後に遷移させる。 */
+        var win = null;
+        try { win = window.open("", "_blank"); } catch (e) { win = null; }
+        var btn = el("shareXBtn");
+        var orig = btn ? btn.textContent : "";
+        if (btn) { btn.disabled = true; btn.textContent = L("リンク作成中…", "Creating link…"); }
+        ensureShareLink().then(function (url) {
+          if (btn) { btn.disabled = false; btn.textContent = orig; }
+          var parts = buildShareParts();
+          /* 自動生成したリンクもパネルに表示し、コピーできるようにする */
+          try { showLinkPanel(url); } catch (e) { /* パネル表示の失敗で共有を止めない */ }
+          if (win && !win.closed) { try { win.opener = null; } catch (e) {} win.location.assign(parts.intentUrl); }
+          else { window.open(parts.intentUrl, "_blank", "noopener"); }
+        }).catch(function () {
+          if (btn) { btn.disabled = false; btn.textContent = orig; }
+          if (win && !win.closed) { try { win.close(); } catch (e) {} }
+          /* リンク生成に失敗した場合は、素のサイトURLで代用せず開かない。
+             レポート専用リンクで共有できない状態で下書きを開くと、
+             リンク先にレポートが含まれないため。 */
+          var panel = el("linkPanel");
+          if (panel) {
+            panel.innerHTML = '<p class="hint" style="margin:0">' + L("共有リンクの作成に失敗したため、Xで共有できませんでした。もう一度お試しください。", "Could not create the report link, so sharing on X was cancelled. Please try again.") + "</p>";
+            panel.classList.remove("hidden");
+          }
+        });
       }
 
       /* ================= 共有リンク（リンク埋め込み方式） =================
@@ -1263,9 +1301,7 @@
         var btn = el("linkBtn");
         var orig = btn ? btn.textContent : "";
         if (btn) { btn.disabled = true; btn.textContent = L("作成中…", "Creating…"); }
-        encodeSharePayload(buildSharePayload()).then(function (encoded) {
-          var url = SITE_URL + "#r=" + encoded;
-          state.shareLink = url;
+        ensureShareLink().then(function (url) {
           if (btn) { btn.disabled = false; btn.textContent = orig; }
           showLinkPanel(url);
         }).catch(function () {
