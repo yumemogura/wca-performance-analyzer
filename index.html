@@ -829,7 +829,7 @@
 
         /* ===== メイン: 1行1種目サマリー ===== */
         out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>種目別明細 — 1行1種目</h2><span class="hint">全大会を通算</span></div>');
-        out.push('<p class="hint" style="margin-bottom:10px">当初のレポートと同じ表形式です。1行が1種目で、種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」（1大会1種目1行の表）で確認できます。</p>');
+        out.push('<p class="hint" style="margin-bottom:10px">1行が1種目で、種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」（1大会1種目1行の表）で確認できます。</p>');
         out.push(eventSummaryHTML(rows));
         out.push('<div class="charts" style="margin-top:20px">');
         out.push('<div class="chart-box">' + radarSVG(rows) + '<p class="chart-cap">レーダーチャート: 種目ごとの本番力スコア平均（外側ほど本番で上振れ、中心が 0＝実力通り）。</p></div>');
@@ -844,7 +844,7 @@
 
         /* 大会別明細（当初の表形式・常時表示） */
         out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>大会別明細 — 1大会1種目1行</h2><span class="hint">全 ' + rows.length + ' 行</span></div>');
-        out.push('<p class="hint" style="margin-bottom:10px">当初のレポートと同じ表形式です。1行が「1大会 × 1種目」で、日付順に並んでいます。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。</p>');
+        out.push('<p class="hint" style="margin-bottom:10px">1行が「1大会 × 1種目」で、日付順に並んでいます。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。</p>');
         out.push('<div class="main-table-wrap"><table class="main-table"><thead><tr><th>日付</th><th>大会</th><th>種目</th><th class="num">公式単発</th><th class="num">公式平均</th><th>単発の評価（練習時）</th><th>平均の評価（練習時）</th><th>成功率の評価</th></tr></thead><tbody>');
         rows.forEach(function (r) {
           var singleDisp = r.mbfBest ? r.mbfBest.text : fmtTime(r.single, r.event);
