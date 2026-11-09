@@ -172,7 +172,7 @@
       .note-ref { color: #b45309; font-weight: 700; font-size: 11.5px; }
 
       /* ===== Primary: 1行1種目サマリー ===== */
-      .summary-wrap { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background:#fff; }
+      .summary-wrap { border: 1px solid var(--line); border-radius: 14px; overflow: visible; background:#fff; }
       .summary-table th, .summary-table td { padding: 14px 16px; }
       .summary-table thead th { background: #fcfcfd; padding: 11px 16px; }
       .summary-table tbody td { border-bottom: 1px solid #f1f2f4; }
@@ -186,17 +186,12 @@
       .dist span b { color:var(--ink); }
       .dist .up b { color: var(--accent); }
       .dist .down b { color:#2563eb; }
-      @media (max-width: 860px) {
-        .summary-wrap { border:none; overflow:visible; background:transparent; }
-        .summary-table, .summary-table tbody, .summary-table tr, .summary-table td { display:block; width:100%; }
-        .summary-table thead { display:none; }
-        .summary-table tr { border:1px solid var(--line); border-radius:14px; margin:0 0 12px; padding:14px 16px; background:#fff; box-shadow: var(--shadow); }
-        .summary-table td { border:none !important; padding:5px 0; display:flex; justify-content:space-between; gap:16px; align-items:center; text-align:right; }
-        .summary-table td::before { content: attr(data-l); font-size:11px; letter-spacing:.06em; color:var(--muted); font-weight:700; text-transform:uppercase; font-family:"IBM Plex Mono",monospace; text-align:left; }
-        .summary-table td.ev-cell { display:block; text-align:left; padding-bottom:8px; border-bottom:1px solid #f1f2f4 !important; margin-bottom:6px; }
-        .summary-table td.ev-cell::before { display:none; }
-        .summary-table .dist { justify-content:flex-end; }
-      }
+      /* 種目別明細も大会別明細も、当初のレポートと同じ「表」のまま表示する:
+         表内スクロールはせず、セルは改行なし。表はページからはみ出してよい（ページ側が横に広がる） */
+      .summary-wrap { overflow: visible; width: max-content; min-width: 100%; }
+      .summary-table { min-width: 860px; width: max-content; }
+      .summary-table th, .summary-table td { white-space: nowrap; }
+      .summary-table .dist { flex-wrap: nowrap; }
 
       /* Detail table (大会別明細) - secondary */
       .detail-details { margin-top: 4px; }
@@ -205,19 +200,10 @@
       .detail-details summary::after { content:"＋ 明細を開く"; font-size:12.5px; font-weight:700; color:var(--ink2); border:1px solid var(--line-strong); border-radius:999px; padding:4px 10px; margin-left:auto; }
       .detail-details[open ] summary::after { content:"− 明細を閉じる"; }
       .main-table td, .main-table th { white-space: nowrap; font-size:13.5px; }
-      .main-table .comp-name { white-space: normal; min-width: 130px; font-weight: 600; }
-      .main-table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
-      @media (max-width: 760px) {
-        .main-table-wrap { border:none; overflow:visible; }
-        .main-table, .main-table tbody, .main-table tr, .main-table td { display: block; width: 100%; }
-        .main-table thead { display: none; }
-        .main-table tr { border: 1px solid var(--line); border-radius:12px; margin: 0 0 10px; padding: 12px 14px; background: #fff; }
-        .main-table td { border: none; padding: 3px 0; white-space: normal; display: flex; justify-content: space-between; gap: 14px; align-items: baseline; }
-        .main-table td::before { content: attr(data-l); font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .05em; color: var(--muted); font-weight: 700; flex: 0 0 auto; }
-        .main-table td.cell-main { display: block; text-align:right; }
-        .main-table td.cell-main::before { display: block; margin-bottom: 2px; text-align:left; }
-        .main-table .ref { display: inline; margin-left: 6px; }
-      }
+      .main-table .comp-name { white-space: nowrap; font-weight: 600; }
+      .main-table-wrap { overflow: visible; width: max-content; min-width: 100%; border:1px solid var(--line); border-radius:12px; }
+      .main-table { min-width: 900px; width: max-content; }
+      .main-table .ref { display: inline; margin-left: 6px; }
       .sum-table td, .sum-table th { white-space: nowrap; }
       @media (max-width: 760px) {
         .sum-table, .sum-table tbody, .sum-table tr, .sum-table td { display: block; width: 100%; }
@@ -602,11 +588,15 @@
         return "大下振れ";
       }
       function ao5At(seq, i) {
-        var w = seq.slice(i, i + 5), dnf = 0, vals = [];
-        w.forEach(function (t) { if (t == null) dnf++; else vals.push(t); });
+        var w = seq.slice(i, i + 5), dnf = 0;
+        w.forEach(function (t) { if (t == null) dnf++; });
         if (dnf >= 2) return null;
-        vals.sort(function (a, b) { return a - b; });
-        var mid = dnf === 1 ? vals.slice(0, 3) : vals.slice(1, 4);
+        /* WCAのao5定義: 5試技の最速と最遅を除いた中3つの平均。
+           DNFは最遅として扱うため、DNFが1つのときは最速も除く
+           （除くのは「有効タイムのうち最も遅い1つ」ではない）。 */
+        var sorted = w.map(function (t) { return t == null ? Infinity : t; })
+          .sort(function (a, b) { return a - b; });
+        var mid = sorted.slice(1, 4);
         return mid.reduce(function (s, x) { return s + x; }, 0) / 3;
       }
       function mo3At(seq, i) {
@@ -812,7 +802,7 @@
         var out = [];
         out.push('<div class="card">');
         out.push("<h2>" + esc(state.personName || state.wcaId) + "（" + esc(state.wcaId) + "）の本番力レポート</h2>");
-        out.push('<p class="hint">対象: WCA公式 ' + Object.keys(comps).length + " 大会・" + Object.keys(evSet).length + " 種目／評価 " + agg.cells.total + " 件。比較に使った練習は各大会の前14日間のみです。下の表は <strong style=\"color:var(--ink)\">1行 = 1種目</strong> にまとめたサマリーです。</p>");
+        out.push('<p class="hint">対象: WCA公式 ' + Object.keys(comps).length + " 大会・" + Object.keys(evSet).length + " 種目／評価 " + agg.cells.total + " 件。比較に使った練習は各大会の前14日間のみです。下に <strong style=\"color:var(--ink)\">種目別明細（1行 = 1種目）</strong> と <strong style=\"color:var(--ink)\">大会別明細（1行 = 1大会 × 1種目）</strong> の2つの表があります。</p>");
         out.push('<div class="kpis">');
         out.push('<div class="kpi"><div class="v num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + '</div><div class="k">本番力スコア（全評価の平均）</div></div>');
         out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.up / agg.cells.total) : 0) + '%</div><div class="k">上振れ率（' + agg.cells.up + " 件）</div></div>");
@@ -830,8 +820,8 @@
         out.push("</div>");
 
         /* ===== メイン: 1行1種目サマリー ===== */
-        out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>種目別サマリー — 1行1種目</h2><span class="hint">全大会を通算</span></div>');
-        out.push('<p class="hint" style="margin-bottom:16px">種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」で確認できます。</p>');
+        out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>種目別明細 — 1行1種目</h2><span class="hint">全大会を通算</span></div>');
+        out.push('<p class="hint" style="margin-bottom:16px">当初のレポートと同じ表形式です。1行が1種目で、種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」（1大会1種目1行の表）で確認できます。</p>');
         out.push(eventSummaryHTML(rows));
         out.push('<div class="charts" style="margin-top:20px">');
         out.push('<div class="chart-box">' + radarSVG(rows) + '<p class="chart-cap">レーダーチャート: 種目ごとの本番力スコア平均（外側ほど本番で上振れ、中心が 0＝実力通り）。</p></div>');
@@ -844,10 +834,9 @@
         out.push('<div>' + quarterTableHTML(rows) + "</div>");
         out.push("</div></div>");
 
-        /* 大会別明細（折りたたみ） */
-        out.push('<div class="card"><h2>大会別明細</h2>');
-        out.push('<p class="hint">1大会1種目1行の詳細です。普段は上のサマリーで十分なため、必要なときだけ開いてください。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。</p>');
-        out.push('<details class="detail-details"><summary>全 ' + rows.length + ' 行の明細</summary>');
+        /* 大会別明細（当初の表形式・常時表示） */
+        out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>大会別明細 — 1大会1種目1行</h2><span class="hint">全 ' + rows.length + ' 行</span></div>');
+        out.push('<p class="hint" style="margin-bottom:16px">当初のレポートと同じ表形式です。1行が「1大会 × 1種目」で、日付順に並んでいます。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。</p>');
         out.push('<div class="main-table-wrap"><table class="main-table"><thead><tr><th>日付</th><th>大会</th><th>種目</th><th class="num">公式単発</th><th class="num">公式平均</th><th>単発の評価（練習時）</th><th>平均の評価（練習時）</th><th>成功率の評価</th></tr></thead><tbody>');
         rows.forEach(function (r) {
           var singleDisp = r.mbfBest ? r.mbfBest.text : fmtTime(r.single, r.event);
@@ -862,7 +851,7 @@
             '<td data-l="成功率の評価" class="cell-main">' + verdictHTML(r.rVerdict, r.rText, r.rVerdict && !r.reliable) + "</td>" +
             "</tr>");
         });
-        out.push("</tbody></table></div></details></div>");
+        out.push("</tbody></table></div></div>");
 
         /* 方法 */
         out.push('<div class="card method"><h2>評価の方法と注意</h2>' +
@@ -870,7 +859,7 @@
           "<h3>単発の評価</h3><p>練習記録を「公式の1ラウンドと同じ試技数」ずつのブロックに区切り、各ブロックのベストの分布を作ります。公式単発がその分布の上位何％に位置するか（パーセンタイル）で判定します。90％以上=大上振れ／70％以上=上振れ／30％以上=実力通り／10％以上=下振れ／10％未満=大下振れ。（ ）内の「単発の期待値」はブロックベストの平均です。</p>" +
           "<h3>平均の評価</h3><p>大会前14日間の練習から ao5（mo3種目は mo3）をすべて計算し、その平均と公式平均の比率で判定します。比率0.95以下=大上振れ／0.98以下=上振れ／1.02以下=実力通り／1.05以下=下振れ／それ以上=大下振れ。公式平均が成立しなかった行は平均の評価を行いません。</p>" +
           "<h3>成功率の評価（目隠し系のみ）</h3><p>公式の成功率と大会前14日間の練習の成功率を比べ、差が+15pt以上=大上振れ／+5pt以上=上振れ／±5pt未満=実力通り／−5pt以下=下振れ／−15pt以下=大下振れ。複数目隠しは練習と比較しないため評価対象外です。</p>" +
-          "<h3>サマリーの総合評価</h3><p>種目別サマリーのスコアは、その種目の全評価セルの平均です。+1.25以上=大上振れ／+0.40以上=上振れ／−0.40〜+0.40=実力通り／−1.25以下で下振れ／それ未満で大下振れとして表示しています。</p>" +
+          "<h3>種目別明細の総合評価</h3><p>種目別明細のスコアは、その種目の全評価セルの平均です。+1.25以上=大上振れ／+0.40以上=上振れ／−0.40〜+0.40=実力通り／−1.25以下で下振れ／それ未満で大下振れとして表示しています。</p>" +
           "<h3>注意</h3><ul>" +
           "<li>練習の有効ソルブが14日間で15未満の判定には「※参考」を付けています。鵜呑みにせず目安として見てください。</li>" +
           "<li>セッションと種目の対応づけは、csTimerのスクランブル種別から自動推定しています。パート練習などのセッションが混ざると判定がぶれます。「対象外」の設定を確認してください。</li>" +
