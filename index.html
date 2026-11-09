@@ -358,7 +358,7 @@
       <p class="foot" id="footText">
         公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
         練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />
-        利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。<br />
+        利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。作成者が確認できるのは、閲覧数と検索回数の合計だけです。利用者一人ひとりの分析結果や入力内容は、作成者にも一切見えません。<br />
         作成者　ゆめもぐら
       </p>
     </main>
@@ -1112,8 +1112,8 @@
         el("sessThEvent").textContent = L("対応する種目", "Mapped event");
         el("genBtn").textContent = L("レポートを作成", "Generate report");
         el("footText").innerHTML = L(
-          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。<br />作成者　ゆめもぐら",
-          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies page views and the counts of search runs / successes / errors / invalid-ID errors (only fixed signals are sent; WCA IDs and practice data are never transmitted). The tallies are visible only to the author.<br />Created by yumemogura");
+          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。作成者が確認できるのは、閲覧数と検索回数の合計だけです。利用者一人ひとりの分析結果や入力内容は、作成者にも一切見えません。<br />作成者　ゆめもぐら",
+          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies page views and the counts of search runs / successes / errors / invalid-ID errors (only fixed signals are sent; WCA IDs and practice data are never transmitted). The author can see only those totals — never any individual user's analysis results or inputs.<br />Created by yumemogura");
         updateGenBtn();
         if (state.sessions.length) renderSessions();
         if (state.results && state.sessions.length) syncSessions();
