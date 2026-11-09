@@ -291,7 +291,7 @@
         </div>
         <div class="status" id="wcaStatus" role="status"></div>
         <div class="msg err" id="wcaError"></div>
-        <p class="hint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。</p>
+        <p class="hint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と「公式記録を取得」が押された回数だけを集計しています。入力したWCA IDや練習データは集計先に送信されません。</p>
 
         <div class="step-head" style="margin-top:22px"><span class="step-no">2</span><h2>練習データを読み込む（csTimer）</h2></div>
 
@@ -339,6 +339,7 @@
       <p class="foot">
         公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
         練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />
+        利用状況の把握のため、GoatCounterで閲覧数と「公式記録を取得」の押された回数を集計しています（WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。<br />
         作成者　ゆめもぐら
       </p>
     </main>
@@ -420,6 +421,16 @@
           return new Promise(function (res) { setTimeout(res, 1200); }).then(function () { return fetchJSON(url, left - 1); });
         });
       }
+      /* ================= アクセス集計（GoatCounter） =================
+         集計するのは閲覧数と「公式記録を取得」の押下回数だけ。
+         入力されたWCA IDは集計先に送信しない（path/titleは固定文字列のみ）。 */
+      function trackSearch() {
+        try {
+          if (window.goatcounter && typeof window.goatcounter.count === "function") {
+            window.goatcounter.count({ path: "search", title: "公式記録を取得", event: true });
+          }
+        } catch (e) { /* 集計の失敗で本体の処理を止めない */ }
+      }
       el("fetchBtn").addEventListener("click", function () {
         var id = el("wcaId").value.trim().toUpperCase();
         showMsg("wcaError", "");
@@ -427,6 +438,7 @@
           showMsg("wcaError", "WCA IDの形式が正しくありません（例: 2025TAKA04）。年度4桁＋英字4文字＋数字2桁で入力してください。");
           return;
         }
+        trackSearch();
         var btn = el("fetchBtn");
         btn.disabled = true;
         el("wcaStatus").innerHTML = '<span class="spin"></span>WCAから公式記録を取得しています…';
@@ -1019,5 +1031,9 @@
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       }
     </script>
+    <!-- アクセス集計: GoatCounter（閲覧数のみ自動集計。検索回数は上の trackSearch() が固定文字列のイベントで集計し、WCA IDは送らない） -->
+    <script data-goatcounter="https://takahashi-cube.goatcounter.com/count"
+            async src="https://gc.zgo.at/count.js"></script>
+    <noscript><img src="https://takahashi-cube.goatcounter.com/count?p=/" alt="" /></noscript>
   </body>
 </html>
