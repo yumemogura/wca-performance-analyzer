@@ -310,7 +310,7 @@
         </div>
         <div class="status" id="wcaStatus" role="status"></div>
         <div class="msg err" id="wcaError"></div>
-        <p class="hint" id="fetchHint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と「公式記録を取得」の実行・成功・エラー（形式エラー含む）の回数だけを、固定の合図で集計しています。入力したWCA IDや練習データは集計先に送信されません。</p>
+        <p class="hint" id="fetchHint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と、「公式記録を取得」が成功したか失敗したか（形式エラー含む）を示す合図だけを集計しています。入力内容や作成されたレポートは集計先に送信されず、作成者にも見れません。</p>
 
         <div class="step-head" style="margin-top:22px"><span class="step-no">2</span><h2 id="step2Title">練習データを読み込む（csTimer）</h2></div>
 
@@ -358,7 +358,7 @@
       <p class="foot" id="footText">
         公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
         練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />
-        利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。作成者が確認できるのは、閲覧数と検索回数の合計だけです。利用者一人ひとりの分析結果や入力内容は、作成者にも一切見えません。<br />
+        利用状況の把握のため、GoatCounterで閲覧数と、検索が成功したか失敗したかを示す合図の回数だけを集計しています。作成者が確認できるのは、閲覧数と成功・失敗の回数の合計だけです。入力内容や作成されたレポートは、作成者にも見れません。<br />
         作成者　ゆめもぐら
       </p>
     </main>
@@ -462,11 +462,10 @@
         });
       }
       /* ================= アクセス集計（GoatCounter） =================
-         集計するのは閲覧数と、検索の実行・成功・エラー・形式エラーの回数だけ。
-         割合は GoatCounter 側で search に対する search-success /
-         search-error / search-invalid の比率、および閲覧数に対する
-         search の比率（残りが「開いただけで何もしなかった」目安）で出す。
-         入力されたWCA IDは集計先に送信しない（path/titleは固定文字列のみ）。 */
+         集計するのは閲覧数と、検索が成功したか失敗したかを示す合図の回数だけ。
+         実行そのものを知らせる固定の合図は送らない。送るのは結果を示す
+         search-success / search-error / search-invalid のいずれかだけ。
+         入力されたWCA IDや入力内容、作成されたレポートは集計先に送信しない。 */
       function trackEvent(path, title) {
         try {
           if (window.goatcounter && typeof window.goatcounter.count === "function") {
@@ -474,14 +473,12 @@
           }
         } catch (e) { /* 集計の失敗で本体の処理を止めない */ }
       }
-      function trackSearch() { trackEvent("search", "公式記録を取得"); }
       function trackSearchSuccess() { trackEvent("search-success", "検索: 成功"); }
       function trackSearchError() { trackEvent("search-error", "検索: エラー"); }
       function trackSearchInvalid() { trackEvent("search-invalid", "検索: 形式エラー"); }
       el("fetchBtn").addEventListener("click", function () {
         var id = el("wcaId").value.trim().toUpperCase();
         showMsg("wcaError", "");
-        trackSearch();
         if (!/^\d{4}[A-Z]{4}\d{2}$/.test(id)) {
           trackSearchInvalid();
           showMsg("wcaError", L("WCA IDの形式が正しくありません（例: 2025TAKA04）。年度4桁＋英字4文字＋数字2桁で入力してください。", "That doesn't look like a valid WCA ID (example: 2025TAKA04). Use 4 digits (year) + 4 letters + 2 digits."));
@@ -957,12 +954,13 @@
           "<li>Fewest Moves (FMC) may not compare correctly depending on how the timer recorded it.</li>" +
           "</ul>") + "</div>");
 
-        out.push('<div class="row no-print" style="margin-top:4px"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + "</button></div>");
+        out.push('<div class="row no-print" style="margin-top:4px"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + '</button><button type="button" id="shareXBtn">' + L("Xで共有", "Share on X") + '</button><span class="hint">' + L("押すとXの投稿画面が下書き入りで開きます（自動では投稿されません）", "Opens the X compose screen with a draft — nothing is posted automatically") + "</span></div>");
 
         var rep = el("report");
         rep.innerHTML = out.join("");
         rep.classList.remove("hidden");
         el("dlBtn").addEventListener("click", downloadReport);
+        el("shareXBtn").addEventListener("click", shareOnX);
         rep.scrollIntoView({ behavior: "smooth", block: "start" });
       }
 
@@ -1093,8 +1091,8 @@
         el("wcaId").placeholder = L("例: 2025TAKA04", "e.g. 2025TAKA04");
         el("fetchBtn").textContent = L("公式記録を取得", "Fetch official results");
         el("fetchHint").textContent = L(
-          "公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と「公式記録を取得」の実行・成功・エラー（形式エラー含む）の回数だけを、固定の合図で集計しています。入力したWCA IDや練習データは集計先に送信されません。",
-          "Official results are fetched directly from the official WCA API (www.worldcubeassociation.org). Your uploaded practice data is never sent anywhere. If the connection fails, try switching between Wi-Fi and mobile data, temporarily disabling ad blockers or VPN, or using another browser. For usage statistics, only page views and the counts of fetch runs / successes / errors (including invalid-ID errors) are tallied via fixed signals — the WCA ID you enter and your practice data are never sent to the analytics service.");
+          "公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と、「公式記録を取得」が成功したか失敗したか（形式エラー含む）を示す合図だけを集計しています。入力内容や作成されたレポートは集計先に送信されず、作成者にも見れません。",
+          "Official results are fetched directly from the official WCA API (www.worldcubeassociation.org). Your uploaded practice data is never sent anywhere. If the connection fails, try switching between Wi-Fi and mobile data, temporarily disabling ad blockers or VPN, or using another browser. For usage statistics, only page views and a signal indicating whether the fetch succeeded or failed (including invalid-ID errors) are tallied. What you enter and the report that is created are never sent to the analytics service, and the author cannot see them either.");
         el("step2Title").textContent = L("練習データを読み込む（csTimer）", "Load practice data (csTimer)");
         el("guideTitle").textContent = L("csTimerの手順", "How to export from csTimer");
         el("guideOpenBtn").textContent = L("csTimerを開く", "Open csTimer");
@@ -1112,8 +1110,8 @@
         el("sessThEvent").textContent = L("対応する種目", "Mapped event");
         el("genBtn").textContent = L("レポートを作成", "Generate report");
         el("footText").innerHTML = L(
-          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。作成者が確認できるのは、閲覧数と検索回数の合計だけです。利用者一人ひとりの分析結果や入力内容は、作成者にも一切見えません。<br />作成者　ゆめもぐら",
-          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies page views and the counts of search runs / successes / errors / invalid-ID errors (only fixed signals are sent; WCA IDs and practice data are never transmitted). The author can see only those totals — never any individual user's analysis results or inputs.<br />Created by yumemogura");
+          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索が成功したか失敗したかを示す合図の回数だけを集計しています。作成者が確認できるのは、閲覧数と成功・失敗の回数の合計だけです。入力内容や作成されたレポートは、作成者にも見れません。<br />作成者　ゆめもぐら",
+          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies only page views and signals indicating whether a search succeeded or failed. The author can see only those totals. What you enter and the report that is created cannot be seen by the author.<br />Created by yumemogura");
         updateGenBtn();
         if (state.sessions.length) renderSessions();
         if (state.results && state.sessions.length) syncSessions();
@@ -1128,6 +1126,25 @@
       el("langJa").addEventListener("click", function () { setLang("ja", true); });
       el("langEn").addEventListener("click", function () { setLang("en", true); });
       applyStatic();
+
+      /* ================= Xで共有（投稿画面の下書きを開くだけ。自動投稿はしない） ================= */
+      function shareOnX() {
+        if (!state.report) return;
+        var rows = state.report.rows;
+        var agg = aggregate(rows);
+        var comps = {};
+        rows.forEach(function (r) { comps[r.comp] = true; });
+        var total = agg.cells.total;
+        function pct(n) { return total ? Math.round(100 * n / total) : 0; }
+        var ov = overallVerdict(agg.mean);
+        var scoreText = agg.mean == null ? "—" : fmtScore(agg.mean);
+        var text = L(
+          "「PB or Fluke?」で本番力を分析しました。\n本番力スコア " + scoreText + (ov ? "（総合評価: " + ov + "）" : "") + "\n上振れ率 " + pct(agg.cells.up) + "% / 実力通り " + pct(agg.cells.flat) + "% / 下振れ率 " + pct(agg.cells.down) + "%（評価 " + total + " 件・" + Object.keys(comps).length + " 大会）",
+          "I analyzed my competition performance with \"PB or Fluke?\"\nPerformance score: " + scoreText + (ov ? " (overall: " + tv(ov) + ")" : "") + "\nAbove expectation " + pct(agg.cells.up) + "% / As expected " + pct(agg.cells.flat) + "% / Below expectation " + pct(agg.cells.down) + "% (" + total + " ratings, " + Object.keys(comps).length + " competitions)");
+        var shareUrl = "https://x.com/intent/tweet?text=" + encodeURIComponent(text) +
+          "&url=" + encodeURIComponent("https://yumemogura.github.io/wca-performance-analyzer/");
+        window.open(shareUrl, "_blank", "noopener");
+      }
 
       /* ================= ダウンロード ================= */
       function downloadReport() {
@@ -1150,7 +1167,7 @@
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       }
     </script>
-    <!-- アクセス集計: GoatCounter（閲覧数は自動集計。検索の実行／成功／エラー／形式エラーは上の trackEvent() が固定文字列のイベントで集計し、WCA IDは送らない） -->
+    <!-- アクセス集計: GoatCounter（閲覧数は自動集計。検索については実行そのものの固定の合図は送らず、成功／失敗（形式エラー含む）を示す合図だけを上の trackEvent() で集計する。WCA IDや入力内容、作成されたレポートは送らない） -->
     <script data-goatcounter="https://takahashi-cube.goatcounter.com/count"
             async src="https://gc.zgo.at/count.js"></script>
     <noscript><img src="https://takahashi-cube.goatcounter.com/count?p=/" alt="" /></noscript>
