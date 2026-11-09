@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>WCA Performance Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0a0b0d;
+        --panel: #121417;
+        --panel2: #171a1e;
+        --panel3: #0d0f11;
+        --ink: #eceef0;
+        --muted: #9aa3ad;
+        --faint: #646e79;
+        --line: #2b3037;
+        --line-strong: #454e59;
+        --accent: #ff4d00;
+        --accent-hover: #ff6a26;
+        --accent-soft: #2a1408;
+        --accent-ink: #ffffff;
+        --teal: #ff7a3d;
+        --good: #7dd87d;
+        --v2-bg: #ff4d00; --v2-ink: #ffffff;
+        --v1-bg: #3a2205; --v1-ink: #ffb35c;
+        --v0-bg: #22262c; --v0-ink: #c3ccd4;
+        --vm1-bg: #152a44; --vm1-ink: #8db8ff;
+        --vm2-bg: #2456c4; --vm2-ink: #ffffff;
+        --warn-bg: #2e2105; --warn-ink: #ffd166;
+        --err-bg: #38120c; --err-ink: #ff9d8a;
+      }
+      * { box-sizing: border-box; border-radius: 0 !important; }
+      html { -webkit-text-size-adjust: 100%; }
+      ::selection { background: var(--accent); color: #fff; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        background-image:
+          linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+        background-size: 56px 56px;
+        color: var(--ink);
+        font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        font-size: 15px;
+        line-height: 1.75;
+      }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 18px 72px; }
+      /* ---- Header: black slab, thick orange rule ---- */
+      h1 {
+        font-family: "Archivo", "Zen Kaku Gothic New", sans-serif;
+        font-size: clamp(30px, 6vw, 52px); font-weight: 900;
+        line-height: 1.05; letter-spacing: .01em; text-transform: uppercase;
+        margin: 0 -18px 0; padding: 30px 18px 18px;
+        background: #000; color: #fff;
+        border-bottom: 5px solid var(--accent);
+      }
+      h2, h3 { font-family: "Archivo", "Zen Kaku Gothic New", sans-serif; line-height: 1.35; }
+      h2 { font-size: 20px; font-weight: 900; margin: 0 0 6px; letter-spacing: .03em; }
+      h3 { font-size: 15px; font-weight: 700; margin: 0 0 4px; letter-spacing: .03em; }
+      p { margin: 0 0 10px; }
+      .lead {
+        color: var(--muted); max-width: 52em;
+        background: var(--panel3); border: 1px solid var(--line); border-top: none;
+        padding: 16px 20px; margin: 0 0 4px; font-size: 14.5px;
+      }
+      .lead strong { color: var(--ink); }
+      .num { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+      td.num, th.num { font-family: "IBM Plex Mono", monospace; }
+      a { color: var(--teal); text-decoration-color: rgba(255,122,61,.45); text-underline-offset: 3px; }
+      a:hover { color: var(--accent-hover); }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line-strong);
+        border-top: 3px solid var(--ink);
+        padding: 20px 22px;
+        margin: 18px 0;
+      }
+      #report .card:first-child { border-top-color: var(--accent); }
+      .step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+      .step-no {
+        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 14px;
+        background: var(--accent); color: #fff;
+        width: 28px; height: 28px; flex: 0 0 28px;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .step-head h2 { font-size: 17px; text-transform: none; }
+      .hint { color: var(--muted); font-size: 13px; line-height: 1.65; }
+      .row { display: flex; flex-wrap: wrap; gap: 0; align-items: stretch; }
+      .row > * + * { margin-left: 10px; }
+      .genbar.row > * + * { margin-left: 14px; }
+      input[type="text"] {
+        font-family: "IBM Plex Mono", monospace; font-size: 16px; padding: 10px 14px;
+        border: 2px solid var(--line-strong);
+        background: #000; color: var(--ink);
+        width: min(280px, 100%); letter-spacing: .08em; text-transform: uppercase;
+      }
+      input[type="text"]::placeholder { color: var(--faint); }
+      input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+      button {
+        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13.5px;
+        letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+        border: 2px solid var(--ink);
+        background: var(--ink); color: #000;
+        padding: 10px 20px;
+      }
+      button:hover:not(:disabled) { background: #fff; border-color: #fff; }
+      button.secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+      button.secondary:hover:not(:disabled) { background: var(--panel2); border-color: var(--ink); }
+      button:disabled { opacity: .35; cursor: not-allowed; }
+      button.big { font-size: 15px; padding: 14px 30px; background: var(--accent); border-color: var(--accent); color: #fff; }
+      button.big:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+      .status { font-family: "IBM Plex Mono", monospace; font-size: 13px; margin-top: 10px; min-height: 1.4em; color: var(--muted); }
+      .status.ok { color: var(--good); font-weight: 700; }
+      .msg { border: 1px solid var(--line-strong); padding: 12px 14px; font-size: 13.5px; margin-top: 10px; display: none; }
+      .msg.show { display: block; }
+      .msg.err { background: var(--err-bg); color: var(--err-ink); border-color: #7a2b1c; }
+      .msg.warn { background: var(--warn-bg); color: var(--warn-ink); border-color: #7a5c10; }
+
+      .drop {
+        border: 2px dashed var(--line-strong);
+        padding: 26px 16px; text-align: center; color: var(--muted);
+        background: var(--panel3);
+        transition: border-color .15s, background .15s;
+      }
+      .drop.over { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+      .drop input[type="file"] { display: none; }
+      .drop label { color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+      table { border-collapse: collapse; width: 100%; }
+      th, td { padding: 8px 10px; text-align: left; vertical-align: top; }
+      thead th {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11.5px; letter-spacing: .08em; color: #fff; font-weight: 700;
+        background: #000;
+        border-bottom: 3px solid var(--accent); white-space: nowrap;
+      }
+      tbody td { border-bottom: 1px solid var(--line); }
+      tbody tr:last-child td { border-bottom: none; }
+      tbody tr:hover td { background: rgba(255,255,255,.02); }
+      td.num, th.num { text-align: right; }
+      .sess-table td { vertical-align: middle; }
+      .sess-table select {
+        font: inherit; font-size: 13.5px; padding: 5px 6px; max-width: 170px;
+        border: 1px solid var(--line-strong); background: #000; color: var(--ink);
+      }
+      .sess-wrap { overflow-x: auto; }
+      @media (max-width: 640px) { .sess-wrap { overflow-x: visible; } .sess-table { font-size: 13px; } .sess-table select { max-width: 128px; } }
+
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin: 16px 0; border: 1px solid var(--line-strong); background: #000; }
+      .kpi { padding: 14px 16px; border-right: 1px solid var(--line); }
+      .kpi:last-child { border-right: none; }
+      @media (max-width: 640px) { .kpi { border-bottom: 1px solid var(--line); } }
+      .kpi .v { font-family: "IBM Plex Mono", monospace; font-size: 30px; font-weight: 700; line-height: 1.1; color: #fff; }
+      .kpi:first-child .v { color: var(--accent); }
+      .kpi .k { font-size: 11.5px; color: var(--muted); font-weight: 700; letter-spacing: .04em; margin-top: 4px; }
+
+      .verdict { display: inline-block; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 12.5px; letter-spacing: .02em; padding: 2px 8px; border: 1px solid transparent; white-space: nowrap; }
+      .v2 { background: var(--v2-bg); color: var(--v2-ink); border-color: var(--v2-bg); }
+      .v1 { background: var(--v1-bg); color: var(--v1-ink); border-color: #8a5a14; }
+      .v0 { background: var(--v0-bg); color: var(--v0-ink); border-color: var(--line-strong); }
+      .vm1 { background: var(--vm1-bg); color: var(--vm1-ink); border-color: #2c4f7d; }
+      .vm2 { background: var(--vm2-bg); color: var(--vm2-ink); border-color: var(--vm2-bg); }
+      .vna { color: var(--faint); font-weight: 500; }
+      .ref { display: block; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--muted); white-space: nowrap; margin-top: 2px; }
+      .note-ref { color: var(--warn-ink); font-weight: 700; font-size: 11.5px; }
+
+      .main-table td, .main-table th { white-space: nowrap; }
+      .main-table .comp-name { white-space: normal; min-width: 130px; font-weight: 700; }
+      @media (max-width: 760px) {
+        .main-table, .main-table tbody, .main-table tr, .main-table td { display: block; width: 100%; }
+        .main-table thead { display: none; }
+        .main-table tr { border: 1px solid var(--line-strong); border-top: 3px solid var(--ink); margin: 0 0 12px; padding: 10px 12px; background: var(--panel2); }
+        .main-table td { border: none; padding: 3px 0; white-space: normal; display: flex; justify-content: space-between; gap: 14px; align-items: baseline; }
+        .main-table td::before { content: attr(data-l); font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .05em; color: var(--muted); font-weight: 700; flex: 0 0 auto; }
+        .main-table td.cell-main { display: block; }
+        .main-table td.cell-main::before { display: block; margin-bottom: 2px; }
+        .main-table .ref { display: inline; margin-left: 6px; }
+      }
+      .sum-table td, .sum-table th { white-space: nowrap; }
+      @media (max-width: 760px) {
+        .sum-table, .sum-table tbody, .sum-table tr, .sum-table td { display: block; width: 100%; }
+        .sum-table thead { display: none; }
+        .sum-table tr { border-bottom: 2px solid var(--line-strong); padding: 8px 0; }
+        .sum-table td { border: none; padding: 2px 0; display: flex; justify-content: space-between; gap: 14px; }
+        .sum-table td::before { content: attr(data-l); font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); font-weight: 700; }
+        .sum-table td:first-child { font-weight: 700; }
+        .sum-table td:first-child::before { content: ""; }
+      }
+
+      .charts { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 8px 28px; align-items: start; }
+      @media (max-width: 820px) { .charts { grid-template-columns: 1fr; } }
+      .chart-box { background: var(--panel3); border: 1px solid var(--line); padding: 10px; }
+      .chart-box svg { width: 100%; height: auto; display: block; }
+      .chart-cap { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+      .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: "IBM Plex Mono", monospace; font-size: 12.5px; margin: 10px 0 2px; color: var(--muted); }
+      .method h3 { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-hover); }
+      .method li { margin-bottom: 4px; }
+      .method ul { margin: 4px 0 10px; padding-left: 1.3em; }
+      .foot { color: var(--faint); font-size: 12.5px; margin-top: 34px; border-top: 2px solid var(--line-strong); padding-top: 14px; }
+      .guide { border: 1px solid var(--line); background: var(--panel3); padding: 14px 16px; margin: 10px 0; }
+      .guide h3 { margin: 0 0 4px; font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+      .guide ol { margin: 4px 0 6px; padding-left: 1.4em; }
+      .guide li { margin-bottom: 4px; }
+      .openbtn {
+        display: inline-block; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13px;
+        color: #fff; background: #000;
+        border: 2px solid var(--ink); padding: 7px 16px;
+        text-decoration: none;
+      }
+      .openbtn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .drop label.pickbtn {
+        display: inline-block; background: var(--accent); color: #fff;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 15px; font-weight: 700; letter-spacing: .05em; text-decoration: none;
+        padding: 15px 36px; min-height: 54px; line-height: 24px; border: 2px solid var(--accent);
+      }
+      .drop label.pickbtn:hover { background: var(--accent-hover); }
+      @media (max-width: 640px) {
+        .wrap { padding-bottom: 72px; }
+        h1 { padding-top: 22px; }
+        .card { padding: 16px 14px; }
+        .row { gap: 10px; }
+        .row > * + * { margin-left: 0; }
+        .row > button, .row > input[type="text"] { flex: 1 1 100%; min-height: 48px; }
+        .row > input[type="text"] { width: 100%; }
+        .genbar {
+          background: var(--panel);
+          padding: 10px 0 calc(8px + env(safe-area-inset-bottom)); margin-bottom: -6px;
+        }
+        .genbar button.big { flex: 1 1 auto; min-height: 56px; }
+        .genbar .hint { flex: 1 1 100%; }
+        .drop label.pickbtn { display: block; text-align: center; }
+      }
+      .hidden { display: none !important; }
+      .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50% !important; animation: sp 0.8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+      @keyframes sp { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+      @media print {
+        body { background: #fff; background-image: none; }
+        .no-print { display: none !important; }
+        .card { box-shadow: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>WCA Performance Analyzer</h1>
+      <p class="lead">
+        <strong>本番力分析ツール</strong> — WCA IDを入力して公式記録を取得し、csTimer / myumyuTimerのエクスポートファイルと組み合わせると、
+        「公式大会でどれだけ実力を出せたか」を大会・種目ごとに判定するレポートが作れます。
+        比較に使うのは<strong>大会前14日間の練習</strong>のみ。計算はすべてこのブラウザの中で完結し、
+        アップロードした練習データが外部に送信されることはありません。
+      </p>
+
+      <section class="card no-print" aria-label="データの入力">
+        <div class="step-head"><span class="step-no">1</span><h2>WCA IDで公式記録を取得</h2></div>
+        <div class="row">
+          <input type="text" id="wcaId" placeholder="例: 2025TAKA04" autocomplete="off" spellcheck="false" aria-label="WCA ID" />
+          <button id="fetchBtn" type="button">公式記録を取得</button>
+        </div>
+        <div class="status" id="wcaStatus" role="status"></div>
+        <div class="msg err" id="wcaError"></div>
+        <p class="hint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。</p>
+
+        <div class="step-head" style="margin-top:22px"><span class="step-no">2</span><h2>練習データを読み込む（csTimer / myumyuTimer）</h2></div>
+
+        <div class="guide">
+          <h3>csTimerの場合</h3>
+          <ol>
+            <li><a class="openbtn" href="https://cstimer.net" target="_blank" rel="noopener">csTimerを開く</a>（別タブで開きます）</li>
+            <li>csTimerにログインする</li>
+            <li>「Export」→「Export to File」でファイルを書き出す</li>
+            <li>書き出したファイルを下のボタンで選ぶ（PCなら枠内へのドラッグ＆ドロップでもOK）</li>
+          </ol>
+        </div>
+        <div class="guide">
+          <h3>myumyuTimerの場合</h3>
+          <ol>
+            <li>myumyuTimerアプリで記録をエクスポートする（JSONファイル）</li>
+            <li>下のボタンでファイルを選ぶ。年ごとに分かれている場合は、まとめて複数選択できます</li>
+          </ol>
+          <p class="hint" style="margin-bottom:0">csTimerとmyumyuTimer、両方のファイルを混ぜて読み込むこともできます。種目はファイルの情報から自動で対応づけます。</p>
+        </div>
+
+        <div class="drop" id="drop">
+          <input type="file" id="fileInput" accept=".txt,.json,text/plain,application/json" multiple />
+          <label class="pickbtn" for="fileInput">ファイルを選ぶ</label>
+          <p style="margin:10px 0 0">スマホ・タブレットでは上のボタンから選択してください。PCではここにドラッグ＆ドロップもできます。</p>
+        </div>
+        <div class="status" id="fileStatus" role="status"></div>
+        <div class="msg err" id="fileError"></div>
+
+        <div id="sessArea" class="hidden">
+          <div class="step-head" style="margin-top:22px"><span class="step-no">3</span><h2>セッションと種目の対応を確認</h2></div>
+          <p class="hint">
+            練習専用セッション（パート練習・分析用など）は「対象外」にしてください。対応づけを変えると、その場でレポートを作り直します。
+          </p>
+          <div class="sess-wrap">
+            <table class="sess-table">
+              <thead><tr><th>セッション名</th><th class="num">試技数</th><th>対応する種目</th></tr></thead>
+              <tbody id="sessBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="row genbar" style="margin-top:20px">
+          <button id="genBtn" class="big" type="button" disabled>レポートを作成</button>
+          <span class="hint" id="genHint">公式記録と練習ファイルの両方がそろうと作成できます。</span>
+        </div>
+        <div class="msg warn" id="genWarn"></div>
+      </section>
+
+      <section id="report" class="hidden" aria-label="分析レポート"></section>
+
+      <p class="foot">
+        公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
+        練習記録はcsTimer / myumyuTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。
+      </p>
+    </main>
+    <script>
+      "use strict";
+      /* ================= 基本定義 ================= */
+      var EVENTS = {
+        "333":   { label: "3×3×3",        fmt: 5 },
+        "222":   { label: "2×2×2",        fmt: 5 },
+        "444":   { label: "4×4×4",        fmt: 5 },
+        "555":   { label: "5×5×5",        fmt: 5 },
+        "666":   { label: "6×6×6",        fmt: 3 },
+        "777":   { label: "7×7×7",        fmt: 3 },
+        "333bf": { label: "3×3×3目隠し",   fmt: 3, bld: true },
+        "333oh": { label: "3×3×3片手",     fmt: 5 },
+        "clock": { label: "クロック",      fmt: 5 },
+        "minx":  { label: "メガミンクス",   fmt: 5 },
+        "pyram": { label: "ピラミンクス",   fmt: 5 },
+        "skewb": { label: "スキューブ",     fmt: 5 },
+        "sq1":   { label: "スクエア1",     fmt: 5 },
+        "444bf": { label: "4×4×4目隠し",   fmt: 1, bld: true },
+        "555bf": { label: "5×5×5目隠し",   fmt: 1, bld: true },
+        "333fm": { label: "3×3×3最少手数", fmt: 3, fmc: true },
+        "333mbf":{ label: "3×3×3複数目隠し", fmt: 3, bld: true, mbf: true }
+      };
+      /* レーダー用: 似た種目が隣り合う並び */
+      var RADAR_ORDER = ["333","222","333oh","444","555","666","777","minx","pyram","skewb","clock","sq1","333fm","333bf","444bf","555bf","333mbf"];
+      /* csTimerのスクランブル種別 → WCA種目 */
+      var SCR_MAP = {
+        "333": "333", "333oh": "333oh", "333ni": "333bf", "333bld": "333bf",
+        "222so": "222", "222": "222", "222wca": "222",
+        "444wca": "444", "444": "444", "555wca": "555", "555": "555",
+        "666wca": "666", "666": "666", "777wca": "777", "777": "777",
+        "444bld": "444bf", "555bld": "555bf",
+        "clkwca": "clock", "clock": "clock", "mgmp": "minx",
+        "pyrso": "pyram", "skbso": "skewb", "sqrs": "sq1", "333fm": "333fm"
+      };
+      var SCORES = { "大上振れ": 2, "上振れ": 1, "実力通り": 0, "下振れ": -1, "大下振れ": -2 };
+      var VCLASS = { "大上振れ": "v2", "上振れ": "v1", "実力通り": "v0", "下振れ": "vm1", "大下振れ": "vm2" };
+
+      var state = {
+        wcaId: "", personName: "", results: null, comps: null, /* comps: id -> {name,start,end} */
+        sessions: [], /* {key,name,scrType,event,attempts:[{ts,t}]} t=秒 or null(DNF) */
+        csSessions: [], mySessions: [], myPool: {}, myChoice: {}, loadedNames: [],
+        report: null
+      };
+
+      function el(id) { return document.getElementById(id); }
+      function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+      function fmtTime(sec, ev) {
+        if (sec == null || !isFinite(sec)) return "—";
+        if (ev && EVENTS[ev] && EVENTS[ev].fmc) return String(Math.round(sec));
+        if (sec < 60) return sec.toFixed(2);
+        var m = Math.floor(sec / 60), s = sec - m * 60;
+        return m + ":" + (s < 10 ? "0" : "") + s.toFixed(2);
+      }
+      function fmtScore(x) { return (x > 0 ? "+" : "") + x.toFixed(2); }
+      function showMsg(id, text) { var m = el(id); m.textContent = text || ""; m.classList.toggle("show", !!text); }
+
+      /* ================= WCA API ================= */
+      var API = "https://www.worldcubeassociation.org/api/v0";
+      function fetchAttempt(url) {
+        var ctrl = ("AbortController" in window) ? new AbortController() : null;
+        var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 20000) : null;
+        function done() { if (timer) clearTimeout(timer); }
+        var opts = { mode: "cors", credentials: "omit", cache: "no-store" };
+        if (ctrl) opts.signal = ctrl.signal;
+        return fetch(url, opts).then(function (r) {
+          done();
+          if (r.status === 404) throw new Error("notfound");
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        }, function (e) { done(); throw e; });
+      }
+      function fetchJSON(url, tries) {
+        var left = (tries == null ? 2 : tries);
+        return fetchAttempt(url).catch(function (e) {
+          if ((e && e.message === "notfound") || left <= 0) throw e;
+          return new Promise(function (res) { setTimeout(res, 1200); }).then(function () { return fetchJSON(url, left - 1); });
+        });
+      }
+      el("fetchBtn").addEventListener("click", function () {
+        var id = el("wcaId").value.trim().toUpperCase();
+        showMsg("wcaError", "");
+        if (!/^\d{4}[A-Z]{4}\d{2}$/.test(id)) {
+          showMsg("wcaError", "WCA IDの形式が正しくありません（例: 2025TAKA04）。年度4桁＋英字4文字＋数字2桁で入力してください。");
+          return;
+        }
+        var btn = el("fetchBtn");
+        btn.disabled = true;
+        el("wcaStatus").innerHTML = '<span class="spin"></span>WCAから公式記録を取得しています…';
+        fetchJSON(API + "/persons/" + id).then(function (person) {
+          state.personName = (person.person && person.person.name) || "";
+          return fetchJSON(API + "/persons/" + id + "/results");
+        }).then(function (results) {
+          if (!results || !results.length) throw new Error("empty");
+          var compIds = {};
+          results.forEach(function (r) { compIds[r.competition_id] = true; });
+          var ids = Object.keys(compIds);
+          return Promise.all(ids.map(function (cid) {
+            return fetchJSON(API + "/competitions/" + cid).then(function (c) {
+              return [cid, { name: c.name || cid, start: c.start_date, end: c.end_date || c.start_date }];
+            }).catch(function () { return [cid, { name: cid, start: null, end: null }]; });
+          })).then(function (pairs) {
+            var comps = {};
+            pairs.forEach(function (p) { comps[p[0]] = p[1]; });
+            state.wcaId = id;
+            state.results = results;
+            state.comps = comps;
+            var dated = ids.filter(function (cid) { return comps[cid].start; }).length;
+            el("wcaStatus").innerHTML = "";
+            el("wcaStatus").textContent = "取得完了: " + (state.personName ? state.personName + " / " : "") + "大会 " + ids.length + " 件・結果 " + results.length + " 件" + (dated < ids.length ? "（うち " + (ids.length - dated) + " 大会は日程が取得できず分析対象外）" : "");
+            el("wcaStatus").className = "status ok";
+            updateGenBtn();
+            if (state.sessions.length) generate();
+          });
+        }).catch(function (e) {
+          el("wcaStatus").innerHTML = "";
+          el("wcaStatus").className = "status";
+          if (e.message === "notfound") showMsg("wcaError", "そのWCA IDの選手が見つかりませんでした。IDを確認してください。");
+          else if (e.message === "empty") showMsg("wcaError", "公式記録がまだ登録されていないIDです。大会に出場して記録が反映されると分析できます。");
+          else showMsg("wcaError", "WCA APIへの接続に失敗しました（Failed to fetch）。お使いの回線やブラウザがWCA公式サイトへの接続を遮断している可能性があります。対処法: ①Wi-Fiとモバイル回線を切り替える ②広告ブロック・VPNを一時的に切る ③別のブラウザで開く ④時間をおいて再試行する。それでも失敗する場合は、WCA IDが正しいかWCA公式サイトでご確認ください。");
+        }).finally(function () { btn.disabled = false; });
+      });
+      el("wcaId").addEventListener("keydown", function (e) { if (e.key === "Enter") el("fetchBtn").click(); });
+
+      /* ================= 練習ファイル（csTimer / myumyuTimer） ================= */
+      function parseCsTimerData(data) {
+        var props = data.properties || {};
+        if (typeof props === "string") { try { props = JSON.parse(props); } catch (e) { props = {}; } }
+        var sd = props.sessionData || {};
+        if (typeof sd === "string") { try { sd = JSON.parse(sd); } catch (e) { sd = {}; } }
+        var sessions = [];
+        Object.keys(data).forEach(function (key) {
+          var m = /^session(\d+)$/.exec(key);
+          if (!m || !Array.isArray(data[key])) return;
+          var info = sd[m[1]] || sd[key] || {};
+          var scr = (info.opt && info.opt.scrType) || "";
+          var attempts = [];
+          data[key].forEach(function (rec) {
+            if (!Array.isArray(rec) || !Array.isArray(rec[0])) return;
+            var penalty = rec[0][0], ms = rec[0][1], ts = rec[3];
+            if (typeof ms !== "number" || typeof ts !== "number") return;
+            attempts.push({ ts: ts, t: penalty === -1 ? null : ms / 1000 });
+          });
+          attempts.sort(function (a, b) { return a.ts - b.ts; });
+          sessions.push({
+            key: key, name: info.name || ("session " + m[1]), scrType: scr,
+            event: SCR_MAP[scr] || (m[1] === "1" && !scr ? "333" : ""),
+            attempts: attempts
+          });
+        });
+        sessions.sort(function (a, b) { return parseInt(a.key.slice(7), 10) - parseInt(b.key.slice(7), 10); });
+        if (!sessions.length) throw new Error("セッションが見つかりませんでした。csTimerのエクスポートファイルか確認してください。");
+        return sessions;
+      }
+
+      /* myumyuTimer: records配列。確定タイム = solve_time_ms + start/end penalty、end_penalty_ms === -1 はDNF */
+      var MYU_MAP = { "333": "333", "222": "222", "444": "444", "555": "555", "666": "666", "777": "777", "333oh": "333oh", "333bf": "333bf", "444bf": "444bf", "555bf": "555bf", "clock": "clock", "minx": "minx", "pyram": "pyram", "skewb": "skewb", "sq1": "sq1", "333fm": "333fm" };
+      var MYU_ORIG = { "3x3": "333", "2x2": "222", "4x4": "444", "5x5": "555", "6x6": "666", "7x7": "777", "3x3OH": "333oh", "3x3BF": "333bf", "Pyraminx": "pyram", "Skewb": "skewb", "Megaminx": "minx", "Clock": "clock", "Square-1": "sq1", "Square1": "sq1" };
+      function addMyumyu(data) {
+        var added = 0;
+        (data.records || []).forEach(function (rec) {
+          if (!rec || typeof rec.recorded_at_unix_ms !== "number" || typeof rec.solve_time_ms !== "number") return;
+          var id = rec.id || (rec.recorded_at_unix_ms + ":" + rec.solve_time_ms + ":" + (rec.scramble || ""));
+          if (state.myPool[id]) return; /* 同じ記録の二重読み込みを防ぐ */
+          var dnf = rec.end_penalty_ms === -1;
+          var eff = rec.solve_time_ms + (rec.end_penalty_ms || 0) + (rec.start_penalty_ms || 0);
+          if (!dnf && !(eff > 0)) return;
+          state.myPool[id] = {
+            gk: (rec.event_id || "") + "|" + (rec.session_name || ""),
+            label: rec.original_event || rec.event_id || "種目不明",
+            rawEvent: rec.event_id || "",
+            sessName: rec.session_name || "",
+            event: MYU_MAP[rec.event_id] || MYU_ORIG[rec.original_event] || "",
+            ts: rec.recorded_at_unix_ms / 1000,
+            t: dnf ? null : eff / 1000
+          };
+          added++;
+        });
+        rebuildMySessions();
+        return added;
+      }
+      function rebuildMySessions() {
+        var groups = {};
+        Object.keys(state.myPool).forEach(function (id) {
+          var r = state.myPool[id];
+          var g = groups[r.gk];
+          if (!g) {
+            g = groups[r.gk] = {
+              key: "my:" + r.gk,
+              name: r.label + (r.sessName ? " / " + r.sessName : "") + "（myumyuTimer）",
+              scrType: r.rawEvent,
+              event: (r.gk in state.myChoice) ? state.myChoice[r.gk] : r.event,
+              attempts: []
+            };
+          }
+          g.attempts.push({ ts: r.ts, t: r.t });
+        });
+        state.mySessions = Object.keys(groups).map(function (k) {
+          var g = groups[k];
+          g.attempts.sort(function (a, b) { return a.ts - b.ts; });
+          return g;
+        });
+      }
+
+      function syncSessions() {
+        state.sessions = state.csSessions.concat(state.mySessions);
+        if (state.sessions.length) {
+          var total = state.sessions.reduce(function (s, x) { return s + x.attempts.length; }, 0);
+          el("fileStatus").textContent = "読み込み済み: " + state.sessions.length + " セッション・総試技数 " + total.toLocaleString() + " 件（" + state.loadedNames.join("、") + "）";
+          el("fileStatus").className = "status ok";
+        }
+        renderSessions();
+        updateGenBtn();
+      }
+      function readTextFile(file) {
+        return new Promise(function (res, rej) {
+          var r = new FileReader();
+          r.onload = function () { res(String(r.result)); };
+          r.onerror = function () { rej(new Error(file.name + ": ファイルの読み込みに失敗しました")); };
+          r.readAsText(file);
+        });
+      }
+      function loadFiles(files) {
+        showMsg("fileError", "");
+        var list = Array.prototype.slice.call(files || []);
+        if (!list.length) return;
+        var errors = [];
+        var chain = Promise.resolve();
+        list.forEach(function (file) {
+          chain = chain.then(function () { return readTextFile(file); }).then(function (text) {
+            var data;
+            try { data = JSON.parse(text); } catch (e) { throw new Error(file.name + ": JSONとして読み取れませんでした。タイマーアプリのエクスポートファイルを選んでください。"); }
+            if (data && Array.isArray(data.records)) {
+              var n = addMyumyu(data);
+              if (!n && !state.mySessions.length) throw new Error(file.name + ": myumyuTimerの記録が見つかりませんでした。");
+            } else if (data && Object.keys(data).some(function (k) { return /^session\d+$/.test(k); })) {
+              state.csSessions = parseCsTimerData(data);
+            } else {
+              throw new Error(file.name + ": csTimer / myumyuTimer のどちらのエクスポートか判別できませんでした。");
+            }
+            if (state.loadedNames.indexOf(file.name) < 0) state.loadedNames.push(file.name);
+          }).catch(function (e) { errors.push(e.message); });
+        });
+        chain.then(function () {
+          if (errors.length) showMsg("fileError", errors.join("／"));
+          syncSessions();
+          if (state.results && state.sessions.length) generate();
+        });
+      }
+      el("fileInput").addEventListener("change", function () { loadFiles(this.files); this.value = ""; });
+      var drop = el("drop");
+      ["dragenter", "dragover"].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
+      ["dragleave", "drop"].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
+      drop.addEventListener("drop", function (e) { loadFiles(e.dataTransfer.files); });
+
+      function renderSessions() {
+        var body = el("sessBody");
+        body.innerHTML = "";
+        var opts = ['<option value="">対象外</option>'].concat(Object.keys(EVENTS).map(function (k) {
+          return '<option value="' + k + '">' + esc(EVENTS[k].label) + '</option>';
+        })).join("");
+        state.sessions.forEach(function (s, i) {
+          var tr = document.createElement("tr");
+          var selId = "sessSel" + i;
+          tr.innerHTML = "<td>" + esc(s.name) + (s.scrType ? ' <span class="hint">(' + esc(s.scrType) + ")</span>" : "") + "</td>" +
+            '<td class="num">' + s.attempts.length.toLocaleString() + "</td>" +
+            '<td><select id="' + selId + '" aria-label="種目">' + opts + "</select></td>";
+          body.appendChild(tr);
+          var sel = el(selId);
+          sel.value = s.event || "";
+          sel.addEventListener("change", function () {
+            state.sessions[i].event = this.value;
+            if (state.sessions[i].key.indexOf("my:") === 0) state.myChoice[state.sessions[i].key.slice(3)] = this.value;
+            if (state.results) generate();
+          });
+        });
+        el("sessArea").classList.toggle("hidden", !state.sessions.length);
+      }
+      function updateGenBtn() {
+        var ok = !!(state.results && state.sessions.length);
+        el("genBtn").disabled = !ok;
+        el("genHint").textContent = ok ? "準備ができました。" : "公式記録と練習ファイルの両方がそろうと作成できます。";
+      }
+      el("genBtn").addEventListener("click", generate);
+
+      /* ================= 分析ロジック ================= */
+      function classifyAvg(ratio) {
+        if (ratio <= 0.95) return "大上振れ";
+        if (ratio <= 0.98) return "上振れ";
+        if (ratio <= 1.02) return "実力通り";
+        if (ratio <= 1.05) return "下振れ";
+        return "大下振れ";
+      }
+      function classifySingle(phat) {
+        if (phat >= 90) return "大上振れ";
+        if (phat >= 70) return "上振れ";
+        if (phat >= 30) return "実力通り";
+        if (phat >= 10) return "下振れ";
+        return "大下振れ";
+      }
+      function classifyRate(diffPt) {
+        if (diffPt >= 15) return "大上振れ";
+        if (diffPt >= 5) return "上振れ";
+        if (diffPt > -5) return "実力通り";
+        if (diffPt > -15) return "下振れ";
+        return "大下振れ";
+      }
+      function ao5At(seq, i) {
+        var w = seq.slice(i, i + 5), dnf = 0, vals = [];
+        w.forEach(function (t) { if (t == null) dnf++; else vals.push(t); });
+        if (dnf >= 2) return null;
+        vals.sort(function (a, b) { return a - b; });
+        var mid = dnf === 1 ? vals.slice(0, 3) : vals.slice(1, 4);
+        return mid.reduce(function (s, x) { return s + x; }, 0) / 3;
+      }
+      function mo3At(seq, i) {
+        var w = seq.slice(i, i + 3);
+        if (w.some(function (t) { return t == null; })) return null;
+        return (w[0] + w[1] + w[2]) / 3;
+      }
+      function practiceAvgMean(seq, isMo3) {
+        var out = [], i;
+        if (isMo3) { for (i = 0; i + 3 <= seq.length; i++) { var m = mo3At(seq, i); if (m != null) out.push(m); } }
+        else { for (i = 0; i + 5 <= seq.length; i++) { var a = ao5At(seq, i); if (a != null) out.push(a); } }
+        if (!out.length) return null;
+        return out.reduce(function (s, x) { return s + x; }, 0) / out.length;
+      }
+      function singleBlocks(seq, k, offSingle) {
+        var bests = [], i, j;
+        for (i = 0; i + k <= seq.length; i++) {
+          var best = null;
+          for (j = i; j < i + k; j++) { if (seq[j] != null && (best == null || seq[j] < best)) best = seq[j]; }
+          if (best != null) bests.push(best);
+        }
+        if (!bests.length) return null;
+        var slower = bests.filter(function (b) { return b > offSingle; }).length;
+        return {
+          expected: bests.reduce(function (s, x) { return s + x; }, 0) / bests.length,
+          phat: 100 * slower / bests.length,
+          nblocks: bests.length
+        };
+      }
+      function decodeMbf(v) {
+        var missed = v % 100;
+        var timeSec = Math.floor(v / 100) % 100000;
+        var points = 99 - Math.floor(v / 10000000);
+        var solved = points + missed, total = solved + missed;
+        var mm = Math.floor(timeSec / 60), ss = timeSec % 60;
+        return { solved: solved, total: total, time: timeSec, text: solved + "/" + total + " " + mm + ":" + (ss < 10 ? "0" : "") + ss };
+      }
+
+      function generate() {
+        if (!state.results || !state.sessions.length) return;
+        /* 練習: 種目 -> [{ts,t}] */
+        var practice = {};
+        state.sessions.forEach(function (s) {
+          if (!s.event) return;
+          practice[s.event] = (practice[s.event] || []).concat(s.attempts);
+        });
+        Object.keys(practice).forEach(function (k) { practice[k].sort(function (a, b) { return a.ts - b.ts; }); });
+
+        /* 公式: 大会×種目に集約 */
+        var byComp = {};
+        state.results.forEach(function (r) {
+          var c = state.comps[r.competition_id];
+          if (!c || !c.start || !EVENTS[r.event_id]) return;
+          var g = byComp[r.competition_id] || (byComp[r.competition_id] = { comp: r.competition_id, name: c.name, start: c.start, events: {} });
+          var e = g.events[r.event_id] || (g.events[r.event_id] = { single: null, average: null, blockSize: EVENTS[r.event_id].fmt, attempts: [], mbfBest: null });
+          if (r.best && r.best > 0) {
+            /* FMCの単発は「手数」がそのまま入っている（平均は手数×100） */
+            var v = EVENTS[r.event_id].fmc ? r.best : r.best / 100;
+            if (EVENTS[r.event_id].mbf) {
+              if (e.mbfBest == null || r.best < e.mbfBest.raw) e.mbfBest = Object.assign({ raw: r.best }, decodeMbf(r.best));
+            } else if (e.single == null || v < e.single) {
+              e.single = v;
+              var nz = (r.attempts || []).filter(function (a) { return a !== 0; }).length;
+              if (nz > 0) e.blockSize = nz;
+            }
+          }
+          if (r.average && r.average > 0) { var av = r.average / 100; if (e.average == null || av < e.average) e.average = av; }
+          (r.attempts || []).forEach(function (a) { if (a !== 0) e.attempts.push(a); });
+        });
+        var compList = Object.keys(byComp).map(function (k) { return byComp[k]; })
+          .sort(function (a, b) { return a.start < b.start ? -1 : 1; });
+
+        var warnings = [];
+        var rows = [];
+        compList.forEach(function (g) {
+          var startMs = new Date(g.start + "T00:00:00").getTime();
+          var winFrom = startMs - 14 * 86400000;
+          RADAR_ORDER.concat(Object.keys(g.events).filter(function (k) { return RADAR_ORDER.indexOf(k) < 0; })).forEach(function (ev) {
+            var e = g.events[ev];
+            if (!e) return;
+            var meta = EVENTS[ev];
+            var win = (practice[ev] || []).filter(function (a) { return a.ts * 1000 >= winFrom && a.ts * 1000 < startMs; });
+            var seq = win.map(function (a) { return a.t; });
+            var nValid = seq.filter(function (t) { return t != null; }).length;
+            var row = {
+              comp: g.comp, compName: g.name, date: g.start, event: ev, label: meta.label,
+              single: e.single, average: e.average, mbfBest: e.mbfBest,
+              nWin: seq.length, nValid: nValid, reliable: nValid >= 15,
+              sVerdict: null, sRef: null, sPhat: null,
+              aVerdict: null, aRef: null,
+              rVerdict: null, rText: null, score: null, cells: 0
+            };
+            if (meta.mbf) {
+              row.note = "複数目隠しは練習データと比較しないため評価対象外";
+            } else {
+              if (e.single != null && seq.length) {
+                var sb = singleBlocks(seq, Math.max(1, e.blockSize), e.single);
+                if (sb) { row.sRef = sb.expected; row.sPhat = sb.phat; row.sVerdict = classifySingle(sb.phat); }
+              }
+              var isMo3 = meta.fmt === 3 || meta.bld;
+              if (e.average != null && seq.length) {
+                var pm = practiceAvgMean(seq, isMo3);
+                if (pm != null) { row.aRef = pm; row.aVerdict = classifyAvg(e.average / pm); }
+              }
+              if (meta.bld) {
+                var offTried = e.attempts.filter(function (a) { return a !== -2; });
+                var offOk = offTried.filter(function (a) { return a > 0; }).length;
+                if (offTried.length && seq.length) {
+                  var pOk = seq.filter(function (t) { return t != null; }).length;
+                  var offRate = 100 * offOk / offTried.length;
+                  var pRate = 100 * pOk / seq.length;
+                  row.rText = "公式 " + offRate.toFixed(0) + "% vs 練習 " + pRate.toFixed(0) + "%";
+                  row.rVerdict = classifyRate(offRate - pRate);
+                }
+              }
+            }
+            var sc = [];
+            [row.sVerdict, row.aVerdict, row.rVerdict].forEach(function (v) { if (v) sc.push(SCORES[v]); });
+            if (sc.length) { row.score = sc.reduce(function (s, x) { return s + x; }, 0) / sc.length; row.cells = sc.length; }
+            rows.push(row);
+          });
+        });
+        if (!rows.length) {
+          showMsg("genWarn", "分析できる行がありませんでした。WCA IDの大会日程とcsTimerの記録期間が重なっているか確認してください。");
+          el("report").classList.add("hidden");
+          return;
+        }
+        showMsg("genWarn", "");
+        var noPractice = rows.filter(function (r) { return !r.cells && !EVENTS[r.event].mbf; }).length;
+        if (noPractice > 0) {
+          showMsg("genWarn", noPractice + " 行は大会前14日間の練習データがなく評価できませんでした。csTimerの記録期間外の大会や、セッションの対応づけが「対象外」になっている種目が該当します。");
+        }
+        state.report = { rows: rows, compList: compList };
+        renderReport();
+      }
+
+      /* ================= レポート描画 ================= */
+      function verdictHTML(v, refText, unreliable) {
+        if (!v) return '<span class="vna">—</span>';
+        var h = '<span class="verdict ' + VCLASS[v] + '">' + v + "</span>";
+        if (refText) h += '<span class="ref">（' + esc(refText) + "）</span>";
+        if (unreliable) h += '<span class="note-ref">※参考</span>';
+        return h;
+      }
+      function aggregate(rows) {
+        var cells = { total: 0, up: 0, flat: 0, down: 0 }, sum = 0;
+        rows.forEach(function (r) {
+          [r.sVerdict, r.aVerdict, r.rVerdict].forEach(function (v) {
+            if (!v) return;
+            cells.total++; sum += SCORES[v];
+            if (SCORES[v] > 0) cells.up++; else if (SCORES[v] < 0) cells.down++; else cells.flat++;
+          });
+        });
+        return { cells: cells, mean: cells.total ? sum / cells.total : null };
+      }
+      function renderReport() {
+        var rows = state.report.rows;
+        var agg = aggregate(rows);
+        var comps = {};
+        rows.forEach(function (r) { comps[r.comp] = true; });
+        var out = [];
+        out.push('<div class="card">');
+        out.push("<h2>" + esc(state.personName || state.wcaId) + "（" + esc(state.wcaId) + "）の本番力レポート</h2>");
+        out.push('<p class="hint">対象: WCA公式 ' + Object.keys(comps).length + " 大会・" + rows.length + " 行（1大会1種目1行）／評価セル " + agg.cells.total + " 件。比較に使った練習は各大会の前14日間のみです。</p>");
+        out.push('<div class="kpis">');
+        out.push('<div class="kpi"><div class="v num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + '</div><div class="k">本番力スコア（全評価セルの平均）</div></div>');
+        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.up / agg.cells.total) : 0) + '%</div><div class="k">上振れ率（' + agg.cells.up + " 件）</div></div>");
+        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.flat / agg.cells.total) : 0) + '%</div><div class="k">実力通り率（' + agg.cells.flat + " 件）</div></div>");
+        out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.down / agg.cells.total) : 0) + '%</div><div class="k">下振れ率（' + agg.cells.down + " 件）</div></div>");
+        out.push('<div class="kpi"><div class="v num">' + Object.keys(comps).length + '</div><div class="k">対象大会数</div></div>');
+        out.push("</div>");
+        out.push('<div class="legend">' +
+          '<span><span class="verdict v2">大上振れ</span> +2</span>' +
+          '<span><span class="verdict v1">上振れ</span> +1</span>' +
+          '<span><span class="verdict v0">実力通り</span> 0</span>' +
+          '<span><span class="verdict vm1">下振れ</span> −1</span>' +
+          '<span><span class="verdict vm2">大下振れ</span> −2</span></div>');
+        out.push("</div>");
+
+        /* 総合表 */
+        out.push('<div class="card"><h2>全大会・全種目 総合表</h2>');
+        out.push('<p class="hint">単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習' + "ao5" + 'の平均（目隠し・最少手数など mo3 種目は mo3 の平均）。※参考 = 練習の有効ソルブが15未満で判定の信頼度が低め。</p>');
+        out.push('<table class="main-table"><thead><tr><th>日付</th><th>大会</th><th>種目</th><th class="num">公式単発</th><th class="num">公式平均</th><th>単発の評価（練習時）</th><th>平均の評価（練習時）</th><th>成功率の評価</th></tr></thead><tbody>');
+        rows.forEach(function (r) {
+          var singleDisp = r.mbfBest ? r.mbfBest.text : fmtTime(r.single, r.event);
+          out.push("<tr>" +
+            '<td data-l="日付" class="num">' + esc(r.date) + "</td>" +
+            '<td data-l="大会" class="comp-name"><a href="https://www.worldcubeassociation.org/competitions/' + esc(r.comp) + '" target="_blank" rel="noopener">' + esc(r.compName) + "</a></td>" +
+            '<td data-l="種目">' + esc(r.label) + "</td>" +
+            '<td data-l="公式単発" class="num">' + esc(singleDisp) + "</td>" +
+            '<td data-l="公式平均" class="num">' + fmtTime(r.average, r.event) + "</td>" +
+            '<td data-l="単発の評価（練習時）" class="cell-main">' + (r.note ? '<span class="vna">' + esc(r.note) + "</span>" : verdictHTML(r.sVerdict, r.sRef != null ? fmtTime(r.sRef, r.event) : null, r.sVerdict && !r.reliable)) + "</td>" +
+            '<td data-l="平均の評価（練習時）" class="cell-main">' + verdictHTML(r.aVerdict, r.aRef != null ? fmtTime(r.aRef, r.event) : null, r.aVerdict && !r.reliable) + "</td>" +
+            '<td data-l="成功率の評価" class="cell-main">' + verdictHTML(r.rVerdict, r.rText, r.rVerdict && !r.reliable) + "</td>" +
+            "</tr>");
+        });
+        out.push("</tbody></table></div>");
+
+        /* 種目別 */
+        out.push('<div class="card"><h2>種目別比較</h2><div class="charts">');
+        out.push('<div class="chart-box">' + radarSVG(rows) + '<p class="chart-cap">レーダーチャート: 種目ごとの本番力スコア平均（外側ほど本番で上振れ、中心の太線が0＝実力通り）。似た種目が隣り合うよう配置しています。</p></div>');
+        out.push('<div>' + eventTableHTML(rows) + "</div>");
+        out.push("</div></div>");
+
+        /* 期間推移 */
+        out.push('<div class="card"><h2>期間推移</h2><div class="charts">');
+        out.push('<div class="chart-box">' + trendSVG(rows) + '<p class="chart-cap">大会ごとの本番力スコア（その大会の全評価セルの平均）の推移。</p></div>');
+        out.push('<div>' + quarterTableHTML(rows) + "</div>");
+        out.push("</div></div>");
+
+        /* 方法 */
+        out.push('<div class="card method"><h2>評価の方法と注意</h2>' +
+          "<h3>比較の基準</h3><p>すべての比較は、各大会の<strong>前14日間</strong>の練習記録だけを使います（大会後の期間は本気で練習していないことがあるため使いません）。練習の日付は、このブラウザのタイムゾーンで判定しています。</p>" +
+          "<h3>単発の評価</h3><p>練習記録を「公式の1ラウンドと同じ試技数」ずつのブロックに区切り、各ブロックのベストの分布を作ります。公式単発がその分布の上位何％に位置するか（パーセンタイル）で判定します。90％以上=大上振れ／70％以上=上振れ／30％以上=実力通り／10％以上=下振れ／10％未満=大下振れ。（ ）内の「単発の期待値」はブロックベストの平均です。</p>" +
+          "<h3>平均の評価</h3><p>大会前14日間の練習から ao5（mo3種目は mo3）をすべて計算し、その平均と公式平均の比率で判定します。比率0.95以下=大上振れ／0.98以下=上振れ／1.02以下=実力通り／1.05以下=下振れ／それ以上=大下振れ。公式平均が成立しなかった行は平均の評価を行いません。</p>" +
+          "<h3>成功率の評価（目隠し系のみ）</h3><p>公式の成功率と大会前14日間の練習の成功率を比べ、差が+15pt以上=大上振れ／+5pt以上=上振れ／±5pt未満=実力通り／−5pt以下=下振れ／−15pt以下=大下振れ。複数目隠しは練習と比較しないため評価対象外です。</p>" +
+          "<h3>注意</h3><ul>" +
+          "<li>練習の有効ソルブが14日間で15未満の判定には「※参考」を付けています。鵜呑みにせず目安として見てください。</li>" +
+          "<li>セッションと種目の対応づけは自動推定です（csTimerはスクランブル種別、myumyuTimerは記録の種目情報から）。パート練習などのセッションが混ざると判定がぶれます。「対象外」の設定を確認してください。</li>" +
+          "<li>csTimerのエクスポート値には+2ペナルティの2秒が含まれている前提で計算しています。myumyuTimerの記録は、記録タイムに開始・終了ペナルティを加えた確定タイムとして扱い、終了ペナルティが −1 の記録はDNFとして計算しています。</li>" +
+          "<li>最少手数（FMC）は、タイマー側の記録形式によっては正しく比較できない場合があります。</li>" +
+          "</ul></div>");
+
+        out.push('<div class="row no-print"><button type="button" class="secondary" id="dlBtn">レポートをHTMLでダウンロード</button></div>');
+
+        var rep = el("report");
+        rep.innerHTML = out.join("");
+        rep.classList.remove("hidden");
+        el("dlBtn").addEventListener("click", downloadReport);
+        rep.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function eventTableHTML(rows) {
+        var byEv = {};
+        rows.forEach(function (r) { (byEv[r.event] = byEv[r.event] || []).push(r); });
+        var keys = RADAR_ORDER.filter(function (k) { return byEv[k]; });
+        var h = '<table class="sum-table"><thead><tr><th>種目</th><th class="num">出場</th><th class="num">スコア</th><th class="num">上振れ</th><th class="num">実力通り</th><th class="num">下振れ</th></tr></thead><tbody>';
+        keys.forEach(function (k) {
+          var rs = byEv[k], agg = aggregate(rs);
+          h += "<tr><td>" + esc(EVENTS[k].label) + '</td><td data-l="出場" class="num">' + rs.length + '</td>' +
+            '<td data-l="スコア" class="num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + "</td>" +
+            '<td data-l="上振れ" class="num">' + agg.cells.up + '</td><td data-l="実力通り" class="num">' + agg.cells.flat + '</td><td data-l="下振れ" class="num">' + agg.cells.down + "</td></tr>";
+        });
+        return h + "</tbody></table>";
+      }
+      function quarterTableHTML(rows) {
+        var byQ = {};
+        rows.forEach(function (r) {
+          var d = new Date(r.date + "T00:00:00");
+          var q = d.getFullYear() + "年" + (Math.floor(d.getMonth() / 3) + 1) + "Q";
+          (byQ[q] = byQ[q] || []).push(r);
+        });
+        var h = '<table class="sum-table"><thead><tr><th>期間（3か月）</th><th class="num">行数</th><th class="num">スコア</th><th class="num">上振れ率</th><th class="num">実力通り率</th><th class="num">下振れ率</th></tr></thead><tbody>';
+        Object.keys(byQ).sort().forEach(function (q) {
+          var rs = byQ[q], agg = aggregate(rs), t = agg.cells.total || 1;
+          h += "<tr><td>" + esc(q) + '</td><td data-l="行数" class="num">' + rs.length + '</td>' +
+            '<td data-l="スコア" class="num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + "</td>" +
+            '<td data-l="上振れ率" class="num">' + Math.round(100 * agg.cells.up / t) + '%</td>' +
+            '<td data-l="実力通り率" class="num">' + Math.round(100 * agg.cells.flat / t) + '%</td>' +
+            '<td data-l="下振れ率" class="num">' + Math.round(100 * agg.cells.down / t) + "%</td></tr>";
+        });
+        return h + "</tbody></table>";
+      }
+
+      /* ================= チャート（SVG） ================= */
+      function radarSVG(rows) {
+        var byEv = {};
+        rows.forEach(function (r) { (byEv[r.event] = byEv[r.event] || []).push(r); });
+        var keys = RADAR_ORDER.filter(function (k) { return byEv[k] && aggregate(byEv[k]).mean != null; });
+        if (keys.length < 3) return '<p class="hint">レーダーチャートは、評価できた種目が3つ以上あると表示されます。</p>';
+        var W = 400, C = W / 2, R = 128;
+        function pt(i, score) {
+          var ang = -Math.PI / 2 + i * 2 * Math.PI / keys.length;
+          var rr = (score + 2) / 4 * R;
+          return [C + rr * Math.cos(ang), C + rr * Math.sin(ang)];
+        }
+        var s = ['<svg viewBox="0 0 ' + W + " " + W + '" role="img" aria-label="種目別レーダーチャート">'];
+        [-2, -1, 0, 1, 2].forEach(function (lv) {
+          var pts = keys.map(function (k, i) { return pt(i, lv).join(","); }).join(" ");
+          s.push('<polygon points="' + pts + '" fill="none" stroke="' + (lv === 0 ? "var(--ink)" : "var(--line)") + '" stroke-width="' + (lv === 0 ? 1.6 : 1) + '"/>');
+        });
+        keys.forEach(function (k, i) {
+          var p = pt(i, 2), lp = pt(i, 2.62);
+          s.push('<line x1="' + C + '" y1="' + C + '" x2="' + p[0] + '" y2="' + p[1] + '" stroke="var(--line)"/>');
+          var anchor = Math.abs(lp[0] - C) < 12 ? "middle" : (lp[0] > C ? "start" : "end");
+          s.push('<text x="' + lp[0] + '" y="' + (lp[1] + 4) + '" text-anchor="' + anchor + '" font-size="11.5" fill="var(--muted)" font-weight="700">' + esc(EVENTS[k].label.replace("3×3×3", "3×3")) + "</text>");
+        });
+        var poly = keys.map(function (k, i) { return pt(i, aggregate(byEv[k]).mean).join(","); }).join(" ");
+        s.push('<polygon points="' + poly + '" fill="var(--accent)" fill-opacity="0.22" stroke="var(--accent)" stroke-width="2"/>');
+        keys.forEach(function (k, i) {
+          var p = pt(i, aggregate(byEv[k]).mean);
+          s.push('<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3.2" fill="var(--accent)"/>');
+        });
+        s.push("</svg>");
+        return s.join("");
+      }
+      function trendSVG(rows) {
+        var byComp = {};
+        rows.forEach(function (r) { (byComp[r.comp] = byComp[r.comp] || { name: r.compName, date: r.date, rows: [] }).rows.push(r); });
+        var comps = Object.keys(byComp).map(function (k) { return byComp[k]; })
+          .filter(function (c) { return aggregate(c.rows).mean != null; })
+          .sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+        if (comps.length < 2) return '<p class="hint">推移グラフは、評価できた大会が2つ以上あると表示されます。</p>';
+        var W = 560, H = 240, PL = 34, PR = 10, PT = 14, PB = 34;
+        var iw = W - PL - PR, ih = H - PT - PB;
+        function X(i) { return PL + (comps.length === 1 ? iw / 2 : i * iw / (comps.length - 1)); }
+        function Y(v) { return PT + (2 - v) / 4 * ih; }
+        var s = ['<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="大会ごとの本番力スコア推移">'];
+        [-2, -1, 0, 1, 2].forEach(function (lv) {
+          s.push('<line x1="' + PL + '" y1="' + Y(lv) + '" x2="' + (W - PR) + '" y2="' + Y(lv) + '" stroke="' + (lv === 0 ? "var(--ink)" : "var(--line)") + '" stroke-width="' + (lv === 0 ? 1.4 : 1) + '"/>');
+          s.push('<text x="' + (PL - 6) + '" y="' + (Y(lv) + 4) + '" text-anchor="end" font-size="11" fill="var(--muted)">' + (lv > 0 ? "+" + lv : lv) + "</text>");
+        });
+        var pts = comps.map(function (c, i) { return X(i) + "," + Y(aggregate(c.rows).mean); }).join(" ");
+        s.push('<polyline points="' + pts + '" fill="none" stroke="var(--accent)" stroke-width="2"/>');
+        comps.forEach(function (c, i) {
+          var mean = aggregate(c.rows).mean;
+          s.push('<circle cx="' + X(i) + '" cy="' + Y(mean) + '" r="3.4" fill="var(--accent)"><title>' + esc(c.name) + ": " + fmtScore(mean) + "</title></circle>");
+          if (i % Math.ceil(comps.length / 8) === 0 || i === comps.length - 1) {
+            s.push('<text x="' + X(i) + '" y="' + (H - 18) + '" text-anchor="middle" font-size="10.5" fill="var(--muted)">' + esc(c.date.slice(2, 7).replace("-", "/")) + "</text>");
+          }
+        });
+        s.push("</svg>");
+        return s.join("");
+      }
+
+      /* ================= ダウンロード ================= */
+      function downloadReport() {
+        var styleText = "";
+        for (var i = 0; i < document.styleSheets.length; i++) {
+          try {
+            var rules = document.styleSheets[i].cssRules;
+            for (var j = 0; j < rules.length; j++) styleText += rules[j].cssText + "\n";
+          } catch (e) { /* 外部フォントのCSSは読み飛ばす */ }
+        }
+        var html = '<!doctype html><html lang="ja"><head><meta charset="utf-8">' +
+          "<title>本番力レポート（" + esc(state.wcaId) + '）</title><style>' + styleText + "</style></head>" +
+          '<body><main class="wrap">' + el("report").innerHTML + "</main></body></html>";
+        var blob = new Blob([html], { type: "text/html" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "wca-performance-report-" + state.wcaId + ".html";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      }
+    </script>
+  </body>
+</html>
