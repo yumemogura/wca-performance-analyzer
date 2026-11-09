@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light" />
     <link rel="icon" href="data:," />
     <title>WCA Performance Analyzer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,122 +11,123 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
     <style>
       :root {
-        color-scheme: dark;
-        --bg: #0a0b0d;
-        --panel: #121417;
-        --panel2: #171a1e;
-        --panel3: #0d0f11;
-        --ink: #eceef0;
-        --muted: #9aa3ad;
-        --faint: #646e79;
-        --line: #2b3037;
-        --line-strong: #454e59;
+        color-scheme: light;
+        --bg: #ffffff;
+        --bg-soft: #fafafa;
+        --panel: #ffffff;
+        --panel2: #f9fafb;
+        --panel3: #f9fafb;
+        --ink: #111318;
+        --ink2: #1f2430;
+        --muted: #6b7280;
+        --faint: #9ca3af;
+        --line: #e9eaee;
+        --line-strong: #dfe2e8;
         --accent: #ff4d00;
-        --accent-hover: #ff6a26;
-        --accent-soft: #2a1408;
+        --accent-hover: #e64400;
+        --accent-soft: #fff4ef;
         --accent-ink: #ffffff;
-        --teal: #ff7a3d;
-        --good: #7dd87d;
+        --teal: #e85d1f;
+        --good: #15803d;
         --v2-bg: #ff4d00; --v2-ink: #ffffff;
-        --v1-bg: #3a2205; --v1-ink: #ffb35c;
-        --v0-bg: #22262c; --v0-ink: #c3ccd4;
-        --vm1-bg: #152a44; --vm1-ink: #8db8ff;
-        --vm2-bg: #2456c4; --vm2-ink: #ffffff;
-        --warn-bg: #2e2105; --warn-ink: #ffd166;
-        --err-bg: #38120c; --err-ink: #ff9d8a;
+        --v1-bg: #fff1e8; --v1-ink: #9a3d00;
+        --v0-bg: #f3f4f6; --v0-ink: #4b5563;
+        --vm1-bg: #eff6ff; --vm1-ink: #1d4ed8;
+        --vm2-bg: #2563eb; --vm2-ink: #ffffff;
+        --warn-bg: #fffbeb; --warn-ink: #92400e;
+        --err-bg: #fef2f2; --err-ink: #991b1b;
+        --shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.04);
+        --radius: 16px;
       }
-      * { box-sizing: border-box; border-radius: 0 !important; }
+      * { box-sizing: border-box; }
       html { -webkit-text-size-adjust: 100%; }
-      ::selection { background: var(--accent); color: #fff; }
+      ::selection { background: #ffe4d6; color: #111318; }
       body {
         margin: 0;
         background: var(--bg);
-        background-image:
-          linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-        background-size: 56px 56px;
         color: var(--ink);
-        font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
         font-size: 15px;
         line-height: 1.75;
+        -webkit-font-smoothing: antialiased;
       }
-      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 18px 72px; }
-      /* ---- Header: black slab, thick orange rule ---- */
+      .wrap { max-width: 1060px; margin: 0 auto; padding: 0 20px 80px; }
       h1 {
         font-family: "Archivo", "Zen Kaku Gothic New", sans-serif;
-        font-size: clamp(30px, 6vw, 52px); font-weight: 900;
-        line-height: 1.05; letter-spacing: .01em; text-transform: uppercase;
-        margin: 0 -18px 0; padding: 30px 18px 18px;
-        background: #000; color: #fff;
-        border-bottom: 5px solid var(--accent);
+        font-size: clamp(28px, 5vw, 42px); font-weight: 800;
+        line-height: 1.08; letter-spacing: -0.02em;
+        margin: 0; padding: 40px 0 10px;
+        background: transparent; color: var(--ink);
+        border: none;
       }
-      h2, h3 { font-family: "Archivo", "Zen Kaku Gothic New", sans-serif; line-height: 1.35; }
-      h2 { font-size: 20px; font-weight: 900; margin: 0 0 6px; letter-spacing: .03em; }
-      h3 { font-size: 15px; font-weight: 700; margin: 0 0 4px; letter-spacing: .03em; }
+      h1::after { content:""; display:block; width:44px; height:3px; background:var(--accent); border-radius:999px; margin-top:16px; }
+      h2, h3 { font-family: "Zen Kaku Gothic New", sans-serif; line-height: 1.4; color: var(--ink); }
+      h2 { font-size: 19px; font-weight: 800; margin: 0 0 6px; letter-spacing: .01em; }
+      h3 { font-size: 15px; font-weight: 700; margin: 0 0 4px; }
       p { margin: 0 0 10px; }
       .lead {
-        color: var(--muted); max-width: 52em;
-        background: var(--panel3); border: 1px solid var(--line); border-top: none;
-        padding: 16px 20px; margin: 0 0 4px; font-size: 14.5px;
+        color: var(--muted); max-width: 56em;
+        background: transparent; border: none; border-bottom: 1px solid var(--line);
+        padding: 0 0 26px; margin: 0 0 6px; font-size: 14.5px; line-height: 1.85;
       }
-      .lead strong { color: var(--ink); }
+      .lead strong { color: var(--ink); font-weight: 700; }
       .num { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
       td.num, th.num { font-family: "IBM Plex Mono", monospace; }
-      a { color: var(--teal); text-decoration-color: rgba(255,122,61,.45); text-underline-offset: 3px; }
-      a:hover { color: var(--accent-hover); }
+      a { color: var(--ink); text-decoration-color: rgba(17,19,24,.25); text-underline-offset: 3px; }
+      a:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
       .card {
         background: var(--panel);
-        border: 1px solid var(--line-strong);
-        border-top: 3px solid var(--ink);
-        padding: 20px 22px;
-        margin: 18px 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 26px 26px;
+        margin: 20px 0;
       }
-      #report .card:first-child { border-top-color: var(--accent); }
-      .step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+      #report .card:first-child { border-color: var(--line); }
+      .step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
       .step-no {
-        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 14px;
-        background: var(--accent); color: #fff;
-        width: 28px; height: 28px; flex: 0 0 28px;
+        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13px;
+        background: var(--ink); color: #fff;
+        width: 28px; height: 28px; flex: 0 0 28px; border-radius: 999px;
         display: inline-flex; align-items: center; justify-content: center;
       }
-      .step-head h2 { font-size: 17px; text-transform: none; }
-      .hint { color: var(--muted); font-size: 13px; line-height: 1.65; }
-      .row { display: flex; flex-wrap: wrap; gap: 0; align-items: stretch; }
-      .row > * + * { margin-left: 10px; }
-      .genbar.row > * + * { margin-left: 14px; }
+      .step-head h2 { font-size: 16.5px; }
+      .hint { color: var(--muted); font-size: 13px; line-height: 1.7; }
+      .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
       input[type="text"] {
-        font-family: "IBM Plex Mono", monospace; font-size: 16px; padding: 10px 14px;
-        border: 2px solid var(--line-strong);
-        background: #000; color: var(--ink);
-        width: min(280px, 100%); letter-spacing: .08em; text-transform: uppercase;
+        font-family: "IBM Plex Mono", monospace; font-size: 15px; padding: 12px 16px;
+        border: 1px solid var(--line-strong);
+        background: #fff; color: var(--ink); border-radius: 999px;
+        width: min(300px, 100%); letter-spacing: .06em; text-transform: uppercase;
       }
       input[type="text"]::placeholder { color: var(--faint); }
-      input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+      input[type="text"]:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(17,19,24,.08); }
       button {
-        font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13.5px;
-        letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
-        border: 2px solid var(--ink);
-        background: var(--ink); color: #000;
-        padding: 10px 20px;
+        font-family: "Zen Kaku Gothic New", sans-serif; font-weight: 700; font-size: 13.5px;
+        letter-spacing: .02em; cursor: pointer;
+        border: 1px solid var(--ink);
+        background: var(--ink); color: #fff; border-radius: 999px;
+        padding: 11px 20px;
       }
-      button:hover:not(:disabled) { background: #fff; border-color: #fff; }
-      button.secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+      button:hover:not(:disabled) { background: #2a2e37; border-color: #2a2e37; }
+      button.secondary { background: #fff; color: var(--ink); border-color: var(--line-strong); }
       button.secondary:hover:not(:disabled) { background: var(--panel2); border-color: var(--ink); }
       button:disabled { opacity: .35; cursor: not-allowed; }
-      button.big { font-size: 15px; padding: 14px 30px; background: var(--accent); border-color: var(--accent); color: #fff; }
+      button.big { font-size: 14.5px; padding: 13px 28px; background: var(--accent); border-color: var(--accent); color: #fff; }
       button.big:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
-      .status { font-family: "IBM Plex Mono", monospace; font-size: 13px; margin-top: 10px; min-height: 1.4em; color: var(--muted); }
+      .status { font-family: "IBM Plex Mono", monospace; font-size: 13px; margin-top: 12px; min-height: 1.4em; color: var(--muted); }
       .status.ok { color: var(--good); font-weight: 700; }
-      .msg { border: 1px solid var(--line-strong); padding: 12px 14px; font-size: 13.5px; margin-top: 10px; display: none; }
+      .msg { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; margin-top: 10px; display: none; }
       .msg.show { display: block; }
-      .msg.err { background: var(--err-bg); color: var(--err-ink); border-color: #7a2b1c; }
-      .msg.warn { background: var(--warn-bg); color: var(--warn-ink); border-color: #7a5c10; }
+      .msg.err { background: var(--err-bg); color: var(--err-ink); border-color: #fecaca; }
+      .msg.warn { background: var(--warn-bg); color: var(--warn-ink); border-color: #fde68a; }
 
       .drop {
-        border: 2px dashed var(--line-strong);
-        padding: 26px 16px; text-align: center; color: var(--muted);
-        background: var(--panel3);
+        border: 1.5px dashed #d4d7de;
+        border-radius: 14px;
+        padding: 28px 16px; text-align: center; color: var(--muted);
+        background: #fcfcfd;
         transition: border-color .15s, background .15s;
       }
       .drop.over { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
@@ -134,120 +135,150 @@
       .drop label { color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
       table { border-collapse: collapse; width: 100%; }
-      th, td { padding: 8px 10px; text-align: left; vertical-align: top; }
+      th, td { padding: 10px 12px; text-align: left; vertical-align: middle; }
       thead th {
         font-family: "IBM Plex Mono", monospace;
-        font-size: 11.5px; letter-spacing: .08em; color: #fff; font-weight: 700;
-        background: #000;
-        border-bottom: 3px solid var(--accent); white-space: nowrap;
+        font-size: 11px; letter-spacing: .08em; color: var(--muted); font-weight: 600;
+        background: #fcfcfd;
+        border-bottom: 1px solid var(--line); white-space: nowrap; text-transform: uppercase;
       }
-      tbody td { border-bottom: 1px solid var(--line); }
+      tbody td { border-bottom: 1px solid #f1f2f4; }
       tbody tr:last-child td { border-bottom: none; }
-      tbody tr:hover td { background: rgba(255,255,255,.02); }
+      tbody tr:hover td { background: #fafafa; }
       td.num, th.num { text-align: right; }
       .sess-table td { vertical-align: middle; }
       .sess-table select {
-        font: inherit; font-size: 13.5px; padding: 5px 6px; max-width: 170px;
-        border: 1px solid var(--line-strong); background: #000; color: var(--ink);
+        font: inherit; font-size: 13.5px; padding: 7px 8px; max-width: 180px; border-radius: 8px;
+        border: 1px solid var(--line-strong); background: #fff; color: var(--ink);
       }
-      .sess-wrap { overflow-x: auto; }
-      @media (max-width: 640px) { .sess-wrap { overflow-x: visible; } .sess-table { font-size: 13px; } .sess-table select { max-width: 128px; } }
+      .sess-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+      .sess-wrap table { margin:0; }
+      @media (max-width: 640px) { .sess-table { font-size: 13px; } .sess-table select { max-width: 132px; } }
 
-      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin: 16px 0; border: 1px solid var(--line-strong); background: #000; }
-      .kpi { padding: 14px 16px; border-right: 1px solid var(--line); }
-      .kpi:last-child { border-right: none; }
-      @media (max-width: 640px) { .kpi { border-bottom: 1px solid var(--line); } }
-      .kpi .v { font-family: "IBM Plex Mono", monospace; font-size: 30px; font-weight: 700; line-height: 1.1; color: #fff; }
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0 6px; border: none; background: transparent; }
+      .kpi { padding: 16px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+      .kpi .v { font-family: "IBM Plex Mono", monospace; font-size: 28px; font-weight: 700; line-height: 1.1; color: var(--ink); }
       .kpi:first-child .v { color: var(--accent); }
-      .kpi .k { font-size: 11.5px; color: var(--muted); font-weight: 700; letter-spacing: .04em; margin-top: 4px; }
+      .kpi .k { font-size: 11.5px; color: var(--muted); font-weight: 600; letter-spacing: .02em; margin-top: 6px; line-height: 1.5; }
 
-      .verdict { display: inline-block; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 12.5px; letter-spacing: .02em; padding: 2px 8px; border: 1px solid transparent; white-space: nowrap; }
+      .verdict { display: inline-flex; align-items:center; font-weight: 700; font-size: 12.5px; letter-spacing: .01em; padding: 4px 10px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; line-height: 1.3; }
       .v2 { background: var(--v2-bg); color: var(--v2-ink); border-color: var(--v2-bg); }
-      .v1 { background: var(--v1-bg); color: var(--v1-ink); border-color: #8a5a14; }
-      .v0 { background: var(--v0-bg); color: var(--v0-ink); border-color: var(--line-strong); }
-      .vm1 { background: var(--vm1-bg); color: var(--vm1-ink); border-color: #2c4f7d; }
+      .v1 { background: var(--v1-bg); color: var(--v1-ink); border-color: #ffdcc6; }
+      .v0 { background: var(--v0-bg); color: var(--v0-ink); border-color: #e5e7eb; }
+      .vm1 { background: var(--vm1-bg); color: var(--vm1-ink); border-color: #bfdbfe; }
       .vm2 { background: var(--vm2-bg); color: var(--vm2-ink); border-color: var(--vm2-bg); }
-      .vna { color: var(--faint); font-weight: 500; }
-      .ref { display: block; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--muted); white-space: nowrap; margin-top: 2px; }
-      .note-ref { color: var(--warn-ink); font-weight: 700; font-size: 11.5px; }
+      .vna { color: var(--faint); font-weight: 500; font-size: 13px; }
+      .ref { display: block; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--muted); white-space: nowrap; margin-top: 3px; }
+      .note-ref { color: #b45309; font-weight: 700; font-size: 11.5px; }
 
-      .main-table td, .main-table th { white-space: nowrap; }
-      .main-table .comp-name { white-space: normal; min-width: 130px; font-weight: 700; }
+      /* ===== Primary: 1行1種目サマリー ===== */
+      .summary-wrap { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background:#fff; }
+      .summary-table th, .summary-table td { padding: 14px 16px; }
+      .summary-table thead th { background: #fcfcfd; padding: 11px 16px; }
+      .summary-table tbody td { border-bottom: 1px solid #f1f2f4; }
+      .summary-table .ev-name { font-weight: 800; font-size: 15px; color: var(--ink); white-space: nowrap; }
+      .summary-table .ev-sub { display:block; font-size: 11.5px; color: var(--muted); font-weight: 500; margin-top: 1px; }
+      .summary-table .score { font-family: "IBM Plex Mono", monospace; font-size: 18px; font-weight: 700; }
+      .summary-table .score.pos { color: var(--accent); }
+      .summary-table .score.neg { color: #2563eb; }
+      .dist { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+      .dist span { font-family:"IBM Plex Mono",monospace; font-size:12px; background:#f9fafb; border:1px solid var(--line); border-radius:999px; padding:3px 8px; color:var(--muted); white-space:nowrap; }
+      .dist span b { color:var(--ink); }
+      .dist .up b { color: var(--accent); }
+      .dist .down b { color:#2563eb; }
+      @media (max-width: 860px) {
+        .summary-wrap { border:none; overflow:visible; background:transparent; }
+        .summary-table, .summary-table tbody, .summary-table tr, .summary-table td { display:block; width:100%; }
+        .summary-table thead { display:none; }
+        .summary-table tr { border:1px solid var(--line); border-radius:14px; margin:0 0 12px; padding:14px 16px; background:#fff; box-shadow: var(--shadow); }
+        .summary-table td { border:none !important; padding:5px 0; display:flex; justify-content:space-between; gap:16px; align-items:center; text-align:right; }
+        .summary-table td::before { content: attr(data-l); font-size:11px; letter-spacing:.06em; color:var(--muted); font-weight:700; text-transform:uppercase; font-family:"IBM Plex Mono",monospace; text-align:left; }
+        .summary-table td.ev-cell { display:block; text-align:left; padding-bottom:8px; border-bottom:1px solid #f1f2f4 !important; margin-bottom:6px; }
+        .summary-table td.ev-cell::before { display:none; }
+        .summary-table .dist { justify-content:flex-end; }
+      }
+
+      /* Detail table (大会別明細) - secondary */
+      .detail-details { margin-top: 4px; }
+      .detail-details summary { cursor:pointer; font-weight:700; font-size:14px; padding:12px 0; color:var(--ink); list-style:none; display:flex; align-items:center; gap:8px; }
+      .detail-details summary::-webkit-details-marker { display:none; }
+      .detail-details summary::after { content:"＋ 明細を開く"; font-size:12px; font-weight:600; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:4px 10px; margin-left:auto; }
+      .detail-details[open ] summary::after { content:"− 明細を閉じる"; }
+      .main-table td, .main-table th { white-space: nowrap; font-size:13.5px; }
+      .main-table .comp-name { white-space: normal; min-width: 130px; font-weight: 600; }
+      .main-table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
       @media (max-width: 760px) {
+        .main-table-wrap { border:none; overflow:visible; }
         .main-table, .main-table tbody, .main-table tr, .main-table td { display: block; width: 100%; }
         .main-table thead { display: none; }
-        .main-table tr { border: 1px solid var(--line-strong); border-top: 3px solid var(--ink); margin: 0 0 12px; padding: 10px 12px; background: var(--panel2); }
+        .main-table tr { border: 1px solid var(--line); border-radius:12px; margin: 0 0 10px; padding: 12px 14px; background: #fff; }
         .main-table td { border: none; padding: 3px 0; white-space: normal; display: flex; justify-content: space-between; gap: 14px; align-items: baseline; }
         .main-table td::before { content: attr(data-l); font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .05em; color: var(--muted); font-weight: 700; flex: 0 0 auto; }
-        .main-table td.cell-main { display: block; }
-        .main-table td.cell-main::before { display: block; margin-bottom: 2px; }
+        .main-table td.cell-main { display: block; text-align:right; }
+        .main-table td.cell-main::before { display: block; margin-bottom: 2px; text-align:left; }
         .main-table .ref { display: inline; margin-left: 6px; }
       }
       .sum-table td, .sum-table th { white-space: nowrap; }
       @media (max-width: 760px) {
         .sum-table, .sum-table tbody, .sum-table tr, .sum-table td { display: block; width: 100%; }
         .sum-table thead { display: none; }
-        .sum-table tr { border-bottom: 2px solid var(--line-strong); padding: 8px 0; }
+        .sum-table tr { border-bottom: 1px solid var(--line); padding: 8px 0; }
         .sum-table td { border: none; padding: 2px 0; display: flex; justify-content: space-between; gap: 14px; }
         .sum-table td::before { content: attr(data-l); font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); font-weight: 700; }
         .sum-table td:first-child { font-weight: 700; }
         .sum-table td:first-child::before { content: ""; }
       }
 
-      .charts { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 8px 28px; align-items: start; }
+      .charts { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 20px 28px; align-items: start; }
       @media (max-width: 820px) { .charts { grid-template-columns: 1fr; } }
-      .chart-box { background: var(--panel3); border: 1px solid var(--line); padding: 10px; }
+      .chart-box { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
       .chart-box svg { width: 100%; height: auto; display: block; }
-      .chart-cap { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
-      .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: "IBM Plex Mono", monospace; font-size: 12.5px; margin: 10px 0 2px; color: var(--muted); }
-      .method h3 { margin-top: 16px; font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-hover); }
+      .chart-cap { font-size: 12.5px; color: var(--muted); margin-top: 8px; line-height:1.6; }
+      .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12.5px; margin: 14px 0 2px; color: var(--muted); align-items:center; }
+      .method h3 { margin-top: 18px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); font-weight:800; }
       .method li { margin-bottom: 4px; }
       .method ul { margin: 4px 0 10px; padding-left: 1.3em; }
-      .foot { color: var(--faint); font-size: 12.5px; margin-top: 34px; border-top: 2px solid var(--line-strong); padding-top: 14px; }
-      .guide { border: 1px solid var(--line); background: var(--panel3); padding: 14px 16px; margin: 10px 0; }
-      .guide h3 { margin: 0 0 4px; font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+      .method p { color:#374151; }
+      .foot { color: var(--faint); font-size: 12.5px; margin-top: 36px; border-top: 1px solid var(--line); padding-top: 16px; line-height:1.7; }
+      .guide { border: 1px solid var(--line); background: #fcfcfd; border-radius: 12px; padding: 16px 18px; margin: 12px 0; }
+      .guide h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
       .guide ol { margin: 4px 0 6px; padding-left: 1.4em; }
       .guide li { margin-bottom: 4px; }
       .openbtn {
-        display: inline-block; font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13px;
-        color: #fff; background: #000;
-        border: 2px solid var(--ink); padding: 7px 16px;
+        display: inline-block; font-weight: 700; font-size: 13px;
+        color: var(--ink); background: #fff;
+        border: 1px solid var(--line-strong); border-radius: 999px; padding: 7px 16px;
         text-decoration: none;
       }
-      .openbtn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .openbtn:hover { border-color: var(--ink); color: var(--ink); }
       .drop label.pickbtn {
-        display: inline-block; background: var(--accent); color: #fff;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 15px; font-weight: 700; letter-spacing: .05em; text-decoration: none;
-        padding: 15px 36px; min-height: 54px; line-height: 24px; border: 2px solid var(--accent);
+        display: inline-block; background: var(--ink); color: #fff;
+        font-size: 14.5px; font-weight: 700; letter-spacing: .02em; text-decoration: none;
+        padding: 13px 30px; min-height: 50px; line-height: 24px; border: 1px solid var(--ink); border-radius: 999px;
       }
-      .drop label.pickbtn:hover { background: var(--accent-hover); }
+      .drop label.pickbtn:hover { background: #2a2e37; }
       @media (max-width: 640px) {
-        .wrap { padding-bottom: 72px; }
-        h1 { padding-top: 22px; }
-        .card { padding: 16px 14px; }
+        .wrap { padding: 0 16px 64px; }
+        h1 { padding-top: 28px; }
+        .card { padding: 20px 16px; border-radius: 14px; }
         .row { gap: 10px; }
-        .row > * + * { margin-left: 0; }
         .row > button, .row > input[type="text"] { flex: 1 1 100%; min-height: 48px; }
         .row > input[type="text"] { width: 100%; }
-        .genbar {
-          background: var(--panel);
-          padding: 10px 0 calc(8px + env(safe-area-inset-bottom)); margin-bottom: -6px;
-        }
-        .genbar button.big { flex: 1 1 auto; min-height: 56px; }
-        .genbar .hint { flex: 1 1 100%; }
+        .genbar button.big { flex: 1 1 auto; min-height: 52px; width:100%; }
+        .genbar .hint { flex: 1 1 100%; text-align:center; }
         .drop label.pickbtn { display: block; text-align: center; }
+        .kpis { grid-template-columns: 1fr 1fr; }
       }
       .hidden { display: none !important; }
-      .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50% !important; animation: sp 0.8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+      .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: sp 0.8s linear infinite; vertical-align: -2px; margin-right: 6px; }
       @keyframes sp { to { transform: rotate(360deg); } }
       @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
       @media print {
-        body { background: #fff; background-image: none; }
+        body { background: #fff; }
         .no-print { display: none !important; }
-        .card { box-shadow: none; }
+        .card { box-shadow: none; break-inside: avoid; }
       }
-    </style>
+</style>
   </head>
   <body>
     <main class="wrap">
@@ -276,14 +307,15 @@
           <ol>
             <li><a class="openbtn" href="https://cstimer.net" target="_blank" rel="noopener">csTimerを開く</a>（別タブで開きます）</li>
             <li>csTimerにログインする</li>
-            <li>「Export」→「Export to File」でファイルを書き出す</li>
+            <li>「Export」→「Export to File」（日本語版では「ファイルにエクスポート」）でファイルを書き出す</li>
             <li>書き出したファイルを下のボタンで選ぶ（PCなら枠内へのドラッグ＆ドロップでもOK）</li>
           </ol>
         </div>
         <div class="guide">
           <h3>myumyuTimerの場合</h3>
           <ol>
-            <li>myumyuTimerアプリで記録をエクスポートする（JSONファイル）</li>
+            <li><a class="openbtn" href="https://timer.myumyufactory.jp/" target="_blank" rel="noopener">myumyuTimer Web版を開く</a>（別タブで開きます）／ アプリでもOK</li>
+            <li>myumyuTimer（Web版またはアプリ）で記録をエクスポートする（JSONファイル）</li>
             <li>下のボタンでファイルを選ぶ。年ごとに分かれている場合は、まとめて複数選択できます</li>
           </ol>
           <p class="hint" style="margin-bottom:0">csTimerとmyumyuTimer、両方のファイルを混ぜて読み込むこともできます。種目はファイルの情報から自動で対応づけます。</p>
@@ -791,34 +823,93 @@
         });
         return { cells: cells, mean: cells.total ? sum / cells.total : null };
       }
+      function overallVerdict(mean) {
+        if (mean == null) return null;
+        if (mean >= 1.25) return "大上振れ";
+        if (mean >= 0.4) return "上振れ";
+        if (mean > -0.4) return "実力通り";
+        if (mean > -1.25) return "下振れ";
+        return "大下振れ";
+      }
+      function eventSummaryHTML(rows) {
+        var byEv = {};
+        rows.forEach(function (r) { (byEv[r.event] = byEv[r.event] || []).push(r); });
+        var keys = RADAR_ORDER.filter(function (k) { return byEv[k]; });
+        Object.keys(byEv).forEach(function(k){ if(keys.indexOf(k)<0) keys.push(k); });
+        var h = '<div class="summary-wrap"><table class="summary-table"><thead><tr><th>種目</th><th class="num">大会数</th><th class="num">公式ベスト単発</th><th class="num">公式ベスト平均</th><th class="num">本番力スコア</th><th>総合評価</th><th>評価の内訳</th></tr></thead><tbody>';
+        keys.forEach(function (k) {
+          var rs = byEv[k], agg = aggregate(rs);
+          var bestS = null, bestA = null, bestMbf = null;
+          rs.forEach(function(r){
+            if (r.single != null && (bestS == null || r.single < bestS)) bestS = r.single;
+            if (r.average != null && (bestA == null || r.average < bestA)) bestA = r.average;
+            if (r.mbfBest && (!bestMbf || r.mbfBest.solved > bestMbf.solved)) bestMbf = r.mbfBest;
+          });
+          var singleDisp = bestMbf && EVENTS[k].mbf ? bestMbf.text : (bestS != null ? fmtTime(bestS, k) : "—");
+          var avgDisp = bestA != null ? fmtTime(bestA, k) : "—";
+          var mean = agg.mean;
+          var ov = overallVerdict(mean);
+          var scoreCls = mean == null ? "" : (mean > 0.05 ? " pos" : (mean < -0.05 ? " neg" : ""));
+          h += "<tr>" +
+            '<td class="ev-cell"><span class="ev-name">' + esc(EVENTS[k].label) + '</span><span class="ev-sub">' + agg.cells.total + ' 件の評価</span></td>' +
+            '<td data-l="大会数" class="num">' + rs.length + '</td>' +
+            '<td data-l="ベスト単発" class="num">' + esc(singleDisp) + '</td>' +
+            '<td data-l="ベスト平均" class="num">' + esc(avgDisp) + '</td>' +
+            '<td data-l="スコア" class="num"><span class="score' + scoreCls + '">' + (mean == null ? "—" : fmtScore(mean)) + '</span></td>' +
+            '<td data-l="総合評価">' + (ov ? '<span class="verdict ' + VCLASS[ov] + '">' + ov + '</span>' : '<span class="vna">評価なし</span>') + '</td>' +
+            '<td data-l="内訳"><div class="dist"><span class="up">上振れ <b>' + agg.cells.up + '</b></span><span>実力通り <b>' + agg.cells.flat + '</b></span><span class="down">下振れ <b>' + agg.cells.down + '</b></span></div></td>' +
+            "</tr>";
+        });
+        h += "</tbody></table></div>";
+        return h;
+      }
       function renderReport() {
         var rows = state.report.rows;
         var agg = aggregate(rows);
         var comps = {};
         rows.forEach(function (r) { comps[r.comp] = true; });
+        var evSet = {};
+        rows.forEach(function(r){ evSet[r.event]=true; });
         var out = [];
         out.push('<div class="card">');
         out.push("<h2>" + esc(state.personName || state.wcaId) + "（" + esc(state.wcaId) + "）の本番力レポート</h2>");
-        out.push('<p class="hint">対象: WCA公式 ' + Object.keys(comps).length + " 大会・" + rows.length + " 行（1大会1種目1行）／評価セル " + agg.cells.total + " 件。比較に使った練習は各大会の前14日間のみです。</p>");
+        out.push('<p class="hint">対象: WCA公式 ' + Object.keys(comps).length + " 大会・" + Object.keys(evSet).length + " 種目／評価 " + agg.cells.total + " 件。比較に使った練習は各大会の前14日間のみです。下の表は <strong style=\"color:var(--ink)\">1行 = 1種目</strong> にまとめたサマリーです。</p>");
         out.push('<div class="kpis">');
-        out.push('<div class="kpi"><div class="v num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + '</div><div class="k">本番力スコア（全評価セルの平均）</div></div>');
+        out.push('<div class="kpi"><div class="v num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + '</div><div class="k">本番力スコア（全評価の平均）</div></div>');
         out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.up / agg.cells.total) : 0) + '%</div><div class="k">上振れ率（' + agg.cells.up + " 件）</div></div>");
         out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.flat / agg.cells.total) : 0) + '%</div><div class="k">実力通り率（' + agg.cells.flat + " 件）</div></div>");
         out.push('<div class="kpi"><div class="v num">' + (agg.cells.total ? Math.round(100 * agg.cells.down / agg.cells.total) : 0) + '%</div><div class="k">下振れ率（' + agg.cells.down + " 件）</div></div>");
         out.push('<div class="kpi"><div class="v num">' + Object.keys(comps).length + '</div><div class="k">対象大会数</div></div>');
+        out.push('<div class="kpi"><div class="v num">' + Object.keys(evSet).length + '</div><div class="k">対象種目数</div></div>');
         out.push("</div>");
         out.push('<div class="legend">' +
           '<span><span class="verdict v2">大上振れ</span> +2</span>' +
           '<span><span class="verdict v1">上振れ</span> +1</span>' +
           '<span><span class="verdict v0">実力通り</span> 0</span>' +
           '<span><span class="verdict vm1">下振れ</span> −1</span>' +
-          '<span><span class="verdict vm2">大下振れ</span> −2</span></div>');
+          '<span><span class="verdict vm2">大下振れ</span> −2</span><span style="margin-left:4px">スコアは評価セルの平均です</span></div>');
         out.push("</div>");
 
-        /* 総合表 */
-        out.push('<div class="card"><h2>全大会・全種目 総合表</h2>');
-        out.push('<p class="hint">単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習' + "ao5" + 'の平均（目隠し・最少手数など mo3 種目は mo3 の平均）。※参考 = 練習の有効ソルブが15未満で判定の信頼度が低め。</p>');
-        out.push('<table class="main-table"><thead><tr><th>日付</th><th>大会</th><th>種目</th><th class="num">公式単発</th><th class="num">公式平均</th><th>単発の評価（練習時）</th><th>平均の評価（練習時）</th><th>成功率の評価</th></tr></thead><tbody>');
+        /* ===== メイン: 1行1種目サマリー ===== */
+        out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>種目別サマリー — 1行1種目</h2><span class="hint">全大会を通算</span></div>');
+        out.push('<p class="hint" style="margin-bottom:16px">種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」で確認できます。</p>');
+        out.push(eventSummaryHTML(rows));
+        out.push('<div class="charts" style="margin-top:20px">');
+        out.push('<div class="chart-box">' + radarSVG(rows) + '<p class="chart-cap">レーダーチャート: 種目ごとの本番力スコア平均（外側ほど本番で上振れ、中心が 0＝実力通り）。</p></div>');
+        out.push('<div><h3 style="margin-bottom:8px">読み方</h3><p class="hint" style="font-size:13.5px;line-height:1.85;color:#374151">スコアが <strong style="color:var(--ink)">プラス</strong> の種目は本番で練習以上の力を出せている傾向、<strong style="color:var(--ink)">マイナス</strong> の種目は本番で崩れやすい傾向です。<br>「評価の内訳」は全大会・全ラウンド分の評価セルの件数です。1つの大会×種目で単発と平均の最大2件（目隠しは成功率も含め最大3件）カウントされます。</p><p class="hint">※ 単発の期待値や練習平均との比較など、1回ごとの判定理由は大会別明細に残しています。</p></div>');
+        out.push("</div></div>");
+
+        /* 期間推移 */
+        out.push('<div class="card"><h2>期間推移</h2><p class="hint" style="margin-bottom:14px">時期ごとの波を見るための集計です。こちらも種目を問わず期間でまとめています。</p><div class="charts">');
+        out.push('<div class="chart-box">' + trendSVG(rows) + '<p class="chart-cap">大会ごとの本番力スコア（その大会の全評価セルの平均）の推移。</p></div>');
+        out.push('<div>' + quarterTableHTML(rows) + "</div>");
+        out.push("</div></div>");
+
+        /* 大会別明細（折りたたみ） */
+        out.push('<div class="card"><h2>大会別明細</h2>');
+        out.push('<p class="hint">1大会1種目1行の詳細です。普段は上のサマリーで十分なため、必要なときだけ開いてください。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。</p>');
+        out.push('<details class="detail-details"><summary>全 ' + rows.length + ' 行の明細</summary>');
+        out.push('<div class="main-table-wrap"><table class="main-table"><thead><tr><th>日付</th><th>大会</th><th>種目</th><th class="num">公式単発</th><th class="num">公式平均</th><th>単発の評価（練習時）</th><th>平均の評価（練習時）</th><th>成功率の評価</th></tr></thead><tbody>');
         rows.forEach(function (r) {
           var singleDisp = r.mbfBest ? r.mbfBest.text : fmtTime(r.single, r.event);
           out.push("<tr>" +
@@ -832,19 +923,7 @@
             '<td data-l="成功率の評価" class="cell-main">' + verdictHTML(r.rVerdict, r.rText, r.rVerdict && !r.reliable) + "</td>" +
             "</tr>");
         });
-        out.push("</tbody></table></div>");
-
-        /* 種目別 */
-        out.push('<div class="card"><h2>種目別比較</h2><div class="charts">');
-        out.push('<div class="chart-box">' + radarSVG(rows) + '<p class="chart-cap">レーダーチャート: 種目ごとの本番力スコア平均（外側ほど本番で上振れ、中心の太線が0＝実力通り）。似た種目が隣り合うよう配置しています。</p></div>');
-        out.push('<div>' + eventTableHTML(rows) + "</div>");
-        out.push("</div></div>");
-
-        /* 期間推移 */
-        out.push('<div class="card"><h2>期間推移</h2><div class="charts">');
-        out.push('<div class="chart-box">' + trendSVG(rows) + '<p class="chart-cap">大会ごとの本番力スコア（その大会の全評価セルの平均）の推移。</p></div>');
-        out.push('<div>' + quarterTableHTML(rows) + "</div>");
-        out.push("</div></div>");
+        out.push("</tbody></table></div></details></div>");
 
         /* 方法 */
         out.push('<div class="card method"><h2>評価の方法と注意</h2>' +
@@ -852,6 +931,7 @@
           "<h3>単発の評価</h3><p>練習記録を「公式の1ラウンドと同じ試技数」ずつのブロックに区切り、各ブロックのベストの分布を作ります。公式単発がその分布の上位何％に位置するか（パーセンタイル）で判定します。90％以上=大上振れ／70％以上=上振れ／30％以上=実力通り／10％以上=下振れ／10％未満=大下振れ。（ ）内の「単発の期待値」はブロックベストの平均です。</p>" +
           "<h3>平均の評価</h3><p>大会前14日間の練習から ao5（mo3種目は mo3）をすべて計算し、その平均と公式平均の比率で判定します。比率0.95以下=大上振れ／0.98以下=上振れ／1.02以下=実力通り／1.05以下=下振れ／それ以上=大下振れ。公式平均が成立しなかった行は平均の評価を行いません。</p>" +
           "<h3>成功率の評価（目隠し系のみ）</h3><p>公式の成功率と大会前14日間の練習の成功率を比べ、差が+15pt以上=大上振れ／+5pt以上=上振れ／±5pt未満=実力通り／−5pt以下=下振れ／−15pt以下=大下振れ。複数目隠しは練習と比較しないため評価対象外です。</p>" +
+          "<h3>サマリーの総合評価</h3><p>種目別サマリーのスコアは、その種目の全評価セルの平均です。+1.25以上=大上振れ／+0.40以上=上振れ／−0.40〜+0.40=実力通り／−1.25以下で下振れ／それ未満で大下振れとして表示しています。</p>" +
           "<h3>注意</h3><ul>" +
           "<li>練習の有効ソルブが14日間で15未満の判定には「※参考」を付けています。鵜呑みにせず目安として見てください。</li>" +
           "<li>セッションと種目の対応づけは自動推定です（csTimerはスクランブル種別、myumyuTimerは記録の種目情報から）。パート練習などのセッションが混ざると判定がぶれます。「対象外」の設定を確認してください。</li>" +
@@ -859,7 +939,7 @@
           "<li>最少手数（FMC）は、タイマー側の記録形式によっては正しく比較できない場合があります。</li>" +
           "</ul></div>");
 
-        out.push('<div class="row no-print"><button type="button" class="secondary" id="dlBtn">レポートをHTMLでダウンロード</button></div>');
+        out.push('<div class="row no-print" style="margin-top:4px"><button type="button" class="secondary" id="dlBtn">レポートをHTMLでダウンロード</button></div>');
 
         var rep = el("report");
         rep.innerHTML = out.join("");
