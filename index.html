@@ -284,7 +284,7 @@
     <main class="wrap">
       <h1>WCA Performance Analyzer</h1>
       <p class="lead">
-        <strong>本番力分析ツール</strong> — WCA IDを入力して公式記録を取得し、csTimer / myumyuTimerのエクスポートファイルと組み合わせると、
+        <strong>本番力分析ツール</strong> — WCA IDを入力して公式記録を取得し、csTimerのエクスポートファイルと組み合わせると、
         「公式大会でどれだけ実力を出せたか」を大会・種目ごとに判定するレポートが作れます。
         比較に使うのは<strong>大会前14日間の練習</strong>のみ。計算はすべてこのブラウザの中で完結し、
         アップロードした練習データが外部に送信されることはありません。
@@ -300,25 +300,17 @@
         <div class="msg err" id="wcaError"></div>
         <p class="hint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。</p>
 
-        <div class="step-head" style="margin-top:22px"><span class="step-no">2</span><h2>練習データを読み込む（csTimer / myumyuTimer）</h2></div>
+        <div class="step-head" style="margin-top:22px"><span class="step-no">2</span><h2>練習データを読み込む（csTimer）</h2></div>
 
         <div class="guide">
-          <h3>csTimerの場合</h3>
+          <h3>csTimerの手順</h3>
           <ol>
             <li><a class="openbtn" href="https://cstimer.net" target="_blank" rel="noopener">csTimerを開く</a>（別タブで開きます）</li>
             <li>csTimerにログインする</li>
             <li>「Export」→「Export to File」（日本語版では「ファイルにエクスポート」）でファイルを書き出す</li>
             <li>書き出したファイルを下のボタンで選ぶ（PCなら枠内へのドラッグ＆ドロップでもOK）</li>
           </ol>
-        </div>
-        <div class="guide">
-          <h3>myumyuTimerの場合</h3>
-          <ol>
-            <li><a class="openbtn" href="https://timer.myumyufactory.jp/" target="_blank" rel="noopener">myumyuTimer Web版を開く</a>（別タブで開きます）／ アプリでもOK</li>
-            <li>myumyuTimer（Web版またはアプリ）で記録をエクスポートする（JSONファイル）</li>
-            <li>下のボタンでファイルを選ぶ。年ごとに分かれている場合は、まとめて複数選択できます</li>
-          </ol>
-          <p class="hint" style="margin-bottom:0">csTimerとmyumyuTimer、両方のファイルを混ぜて読み込むこともできます。種目はファイルの情報から自動で対応づけます。</p>
+          <p class="hint" style="margin-bottom:0">種目はファイルのスクランブル種別から自動で対応づけます。次のステップで確認・変更できます。</p>
         </div>
 
         <div class="drop" id="drop">
@@ -353,7 +345,7 @@
 
       <p class="foot">
         公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
-        練習記録はcsTimer / myumyuTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。
+        練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。
       </p>
     </main>
     <script>
@@ -396,7 +388,7 @@
       var state = {
         wcaId: "", personName: "", results: null, comps: null, /* comps: id -> {name,start,end} */
         sessions: [], /* {key,name,scrType,event,attempts:[{ts,t}]} t=秒 or null(DNF) */
-        csSessions: [], mySessions: [], myPool: {}, myChoice: {}, loadedNames: [],
+        csSessions: [], loadedNames: [],
         report: null
       };
 
@@ -479,7 +471,7 @@
       });
       el("wcaId").addEventListener("keydown", function (e) { if (e.key === "Enter") el("fetchBtn").click(); });
 
-      /* ================= 練習ファイル（csTimer / myumyuTimer） ================= */
+      /* ================= 練習ファイル（csTimer） ================= */
       function parseCsTimerData(data) {
         var props = data.properties || {};
         if (typeof props === "string") { try { props = JSON.parse(props); } catch (e) { props = {}; } }
@@ -510,57 +502,8 @@
         return sessions;
       }
 
-      /* myumyuTimer: records配列。確定タイム = solve_time_ms + start/end penalty、end_penalty_ms === -1 はDNF */
-      var MYU_MAP = { "333": "333", "222": "222", "444": "444", "555": "555", "666": "666", "777": "777", "333oh": "333oh", "333bf": "333bf", "444bf": "444bf", "555bf": "555bf", "clock": "clock", "minx": "minx", "pyram": "pyram", "skewb": "skewb", "sq1": "sq1", "333fm": "333fm" };
-      var MYU_ORIG = { "3x3": "333", "2x2": "222", "4x4": "444", "5x5": "555", "6x6": "666", "7x7": "777", "3x3OH": "333oh", "3x3BF": "333bf", "Pyraminx": "pyram", "Skewb": "skewb", "Megaminx": "minx", "Clock": "clock", "Square-1": "sq1", "Square1": "sq1" };
-      function addMyumyu(data) {
-        var added = 0;
-        (data.records || []).forEach(function (rec) {
-          if (!rec || typeof rec.recorded_at_unix_ms !== "number" || typeof rec.solve_time_ms !== "number") return;
-          var id = rec.id || (rec.recorded_at_unix_ms + ":" + rec.solve_time_ms + ":" + (rec.scramble || ""));
-          if (state.myPool[id]) return; /* 同じ記録の二重読み込みを防ぐ */
-          var dnf = rec.end_penalty_ms === -1;
-          var eff = rec.solve_time_ms + (rec.end_penalty_ms || 0) + (rec.start_penalty_ms || 0);
-          if (!dnf && !(eff > 0)) return;
-          state.myPool[id] = {
-            gk: (rec.event_id || "") + "|" + (rec.session_name || ""),
-            label: rec.original_event || rec.event_id || "種目不明",
-            rawEvent: rec.event_id || "",
-            sessName: rec.session_name || "",
-            event: MYU_MAP[rec.event_id] || MYU_ORIG[rec.original_event] || "",
-            ts: rec.recorded_at_unix_ms / 1000,
-            t: dnf ? null : eff / 1000
-          };
-          added++;
-        });
-        rebuildMySessions();
-        return added;
-      }
-      function rebuildMySessions() {
-        var groups = {};
-        Object.keys(state.myPool).forEach(function (id) {
-          var r = state.myPool[id];
-          var g = groups[r.gk];
-          if (!g) {
-            g = groups[r.gk] = {
-              key: "my:" + r.gk,
-              name: r.label + (r.sessName ? " / " + r.sessName : "") + "（myumyuTimer）",
-              scrType: r.rawEvent,
-              event: (r.gk in state.myChoice) ? state.myChoice[r.gk] : r.event,
-              attempts: []
-            };
-          }
-          g.attempts.push({ ts: r.ts, t: r.t });
-        });
-        state.mySessions = Object.keys(groups).map(function (k) {
-          var g = groups[k];
-          g.attempts.sort(function (a, b) { return a.ts - b.ts; });
-          return g;
-        });
-      }
-
       function syncSessions() {
-        state.sessions = state.csSessions.concat(state.mySessions);
+        state.sessions = state.csSessions.slice();
         if (state.sessions.length) {
           var total = state.sessions.reduce(function (s, x) { return s + x.attempts.length; }, 0);
           el("fileStatus").textContent = "読み込み済み: " + state.sessions.length + " セッション・総試技数 " + total.toLocaleString() + " 件（" + state.loadedNames.join("、") + "）";
@@ -586,14 +529,11 @@
         list.forEach(function (file) {
           chain = chain.then(function () { return readTextFile(file); }).then(function (text) {
             var data;
-            try { data = JSON.parse(text); } catch (e) { throw new Error(file.name + ": JSONとして読み取れませんでした。タイマーアプリのエクスポートファイルを選んでください。"); }
-            if (data && Array.isArray(data.records)) {
-              var n = addMyumyu(data);
-              if (!n && !state.mySessions.length) throw new Error(file.name + ": myumyuTimerの記録が見つかりませんでした。");
-            } else if (data && Object.keys(data).some(function (k) { return /^session\d+$/.test(k); })) {
+            try { data = JSON.parse(text); } catch (e) { throw new Error(file.name + ": JSONとして読み取れませんでした。csTimerのエクスポートファイルを選んでください。"); }
+            if (data && Object.keys(data).some(function (k) { return /^session\d+$/.test(k); })) {
               state.csSessions = parseCsTimerData(data);
             } else {
-              throw new Error(file.name + ": csTimer / myumyuTimer のどちらのエクスポートか判別できませんでした。");
+              throw new Error(file.name + ": csTimerのエクスポートファイルか判別できませんでした。");
             }
             if (state.loadedNames.indexOf(file.name) < 0) state.loadedNames.push(file.name);
           }).catch(function (e) { errors.push(e.message); });
@@ -627,7 +567,6 @@
           sel.value = s.event || "";
           sel.addEventListener("change", function () {
             state.sessions[i].event = this.value;
-            if (state.sessions[i].key.indexOf("my:") === 0) state.myChoice[state.sessions[i].key.slice(3)] = this.value;
             if (state.results) generate();
           });
         });
@@ -934,8 +873,8 @@
           "<h3>サマリーの総合評価</h3><p>種目別サマリーのスコアは、その種目の全評価セルの平均です。+1.25以上=大上振れ／+0.40以上=上振れ／−0.40〜+0.40=実力通り／−1.25以下で下振れ／それ未満で大下振れとして表示しています。</p>" +
           "<h3>注意</h3><ul>" +
           "<li>練習の有効ソルブが14日間で15未満の判定には「※参考」を付けています。鵜呑みにせず目安として見てください。</li>" +
-          "<li>セッションと種目の対応づけは自動推定です（csTimerはスクランブル種別、myumyuTimerは記録の種目情報から）。パート練習などのセッションが混ざると判定がぶれます。「対象外」の設定を確認してください。</li>" +
-          "<li>csTimerのエクスポート値には+2ペナルティの2秒が含まれている前提で計算しています。myumyuTimerの記録は、記録タイムに開始・終了ペナルティを加えた確定タイムとして扱い、終了ペナルティが −1 の記録はDNFとして計算しています。</li>" +
+          "<li>セッションと種目の対応づけは、csTimerのスクランブル種別から自動推定しています。パート練習などのセッションが混ざると判定がぶれます。「対象外」の設定を確認してください。</li>" +
+          "<li>csTimerのエクスポート値には+2ペナルティの2秒が含まれている前提で計算しています。</li>" +
           "<li>最少手数（FMC）は、タイマー側の記録形式によっては正しく比較できない場合があります。</li>" +
           "</ul></div>");
 
