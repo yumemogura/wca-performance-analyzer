@@ -278,11 +278,6 @@
       .lang-switch button:hover:not(.active) { background: var(--panel2); color: var(--ink); }
       .share-panel { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-top: 14px; background: #fcfcfd; }
       .share-panel h3 { font-size: 14px; margin: 0 0 4px; }
-      .share-imgs { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 16px; margin-top: 12px; align-items: start; }
-      @media (max-width: 760px) { .share-imgs { grid-template-columns: 1fr; } }
-      .share-imgs figure { margin: 0; }
-      .share-imgs img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
-      .share-imgs figcaption { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
       .hidden { display: none !important; }
       .shared-banner { border: 1px solid #ffdcc6; background: var(--accent-soft); border-radius: var(--radius); padding: 18px 20px; margin: 16px 0 0; }
       .shared-banner h2 { font-size: 16.5px; margin: 0 0 4px; }
@@ -972,7 +967,7 @@
           "<li>Fewest Moves (FMC) may not compare correctly depending on how the timer recorded it.</li>" +
           "</ul>") + "</div>");
 
-        out.push('<div class="no-print" style="margin-top:4px"><div class="row"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + '</button><button type="button" id="shareXBtn">' + L("Xで共有（画像付き）", "Share on X (with images)") + '</button><button type="button" class="secondary" id="linkBtn">' + L("共有リンクを作る", "Create share link") + '</button><span class="hint">' + L("レーダーチャートと推移グラフの画像も一緒に共有します（自動では投稿されません）", "The radar chart and trend graph images are shared along with the text — nothing is posted automatically") + '</span></div><p class="hint" style="margin:8px 0 0">' + L("共有リンクは、リンクを知っている人なら誰でもこのレポートを見られます。送る相手に注意してください。", "Anyone who knows the share link can view this report — please be careful who you send it to.") + '</p><div id="sharePanel" class="share-panel hidden" aria-live="polite"></div><div id="linkPanel" class="share-panel hidden" aria-live="polite"></div></div>');
+        out.push('<div class="no-print" style="margin-top:4px"><div class="row"><button type="button" class="secondary" id="dlBtn">' + L("レポートをHTMLでダウンロード", "Download report as HTML") + '</button><button type="button" id="shareXBtn">' + L("Xで共有", "Share on X") + '</button><button type="button" class="secondary" id="linkBtn">' + L("共有リンクを作る", "Create share link") + '</button><span class="hint">' + L("結果のサマリー入りで投稿の下書きが開きます（自動では投稿されません）", "Opens a post draft with your result summary — nothing is posted automatically") + '</span></div><p class="hint" style="margin:8px 0 0">' + L("共有リンクは、リンクを知っている人なら誰でもこのレポートを見られます。送る相手に注意してください。", "Anyone who knows the share link can view this report — please be careful who you send it to.") + '</p><div id="linkPanel" class="share-panel hidden" aria-live="polite"></div></div>');
 
         var rep = el("report");
         rep.innerHTML = out.join("");
@@ -1147,14 +1142,10 @@
       el("langEn").addEventListener("click", function () { setLang("en", true); });
       applyStatic();
 
-      /* ================= Xで共有（画像付き） =================
-         Xの投稿画面を開くURL（intent）だけでは画像を添付できないため:
-         1) レーダーと推移グラフのSVGをPNG画像に変換する
-         2) 画像ファイルごと共有できる環境（スマホの共有シート等）では
-            navigator.share({files}) でXアプリ等へ画像ごと渡す
-         3) それ以外の環境では、生成した画像をパネルに表示し、
-            「画像を保存」→ Xの投稿画面で添付、という手順を案内する
-         いずれも自動では投稿されない。 */
+      /* ================= Xで共有 =================
+         結果のサマリー（スコア・総合評価・上振れ率など）入りの投稿文で
+         Xの投稿画面（intent）を開く。自動では投稿されない。
+         共有リンクを生成済みの場合は、投稿文のURLがレポート専用リンクになる。 */
       function buildShareParts() {
         var rows = state.report.rows;
         var agg = aggregate(rows);
@@ -1172,99 +1163,10 @@
           "&url=" + encodeURIComponent(siteUrl);
         return { text: text, siteUrl: siteUrl, intentUrl: intentUrl };
       }
-      var SVG_VAR_MAP = { "var(--accent)": "#ff4d00", "var(--ink)": "#111318", "var(--line)": "#e9eaee", "var(--muted)": "#2f3642", "var(--line-strong)": "#dfe2e8" };
-      function svgToPngBlob(svgEl) {
-        return new Promise(function (resolve, reject) {
-          var vb = svgEl.viewBox && svgEl.viewBox.baseVal;
-          var w = (vb && vb.width) || svgEl.clientWidth || 560;
-          var h = (vb && vb.height) || svgEl.clientHeight || 240;
-          var xml = new XMLSerializer().serializeToString(svgEl);
-          Object.keys(SVG_VAR_MAP).forEach(function (k) { xml = xml.split(k).join(SVG_VAR_MAP[k]); });
-          if (xml.indexOf("xmlns=") < 0) xml = xml.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-          xml = xml.replace(/(<svg[^>]*>)/, '$1<rect width="100%" height="100%" fill="#ffffff"/>');
-          if (!/width=/.test(xml.split(">")[0])) xml = xml.replace("<svg", '<svg width="' + w + '" height="' + h + '"');
-          var url = URL.createObjectURL(new Blob([xml], { type: "image/svg+xml;charset=utf-8" }));
-          var img = new Image();
-          img.onload = function () {
-            try {
-              var scale = 3;
-              var canvas = document.createElement("canvas");
-              canvas.width = Math.round(w * scale); canvas.height = Math.round(h * scale);
-              var ctx = canvas.getContext("2d");
-              ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-              URL.revokeObjectURL(url);
-              if (canvas.toBlob) canvas.toBlob(function (b) { b ? resolve(b) : reject(new Error("png")); }, "image/png");
-              else reject(new Error("png"));
-            } catch (e) { URL.revokeObjectURL(url); reject(e); }
-          };
-          img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("svg")); };
-          img.src = url;
-        });
-      }
-      function collectChartImages() {
-        var svgs = Array.prototype.slice.call(document.querySelectorAll("#report svg"));
-        var jobs = svgs.map(function (svg) {
-          var label = svg.getAttribute("aria-label") || "";
-          var isRadar = label.indexOf("レーダー") >= 0 || label.toLowerCase().indexOf("radar") >= 0;
-          var kind = isRadar ? "radar" : "trend";
-          var filename = isRadar ? "pb-or-fluke-radar.png" : "pb-or-fluke-trend.png";
-          var caption = isRadar ? L("レーダーチャート（種目別）", "Radar chart (by event)") : L("推移グラフ（大会ごと）", "Trend graph (by competition)");
-          return svgToPngBlob(svg).then(function (blob) {
-            return { kind: kind, filename: filename, caption: caption, blob: blob, url: URL.createObjectURL(blob) };
-          }).catch(function () { return null; });
-        });
-        return Promise.all(jobs).then(function (list) { return list.filter(Boolean); });
-      }
-      function showSharePanel(parts, images) {
-        var panel = el("sharePanel");
-        if (!panel) { window.open(parts.intentUrl, "_blank", "noopener"); return; }
-        var h = "<h3>" + L("共有用画像を用意しました", "Your share images are ready") + "</h3>" +
-          '<p class="hint" style="margin:0">' + L("Xの投稿画面（Web）からは画像を自動で添付できないため、下の画像を保存して、投稿画面で添付してください。スマホでは長押しでも保存できます。", "The X compose screen on the web cannot receive images automatically, so save the images below and attach them in the compose screen. On a phone, you can also long-press an image to save it.") + "</p>";
-        if (images.length) {
-          h += '<div class="share-imgs">';
-          images.forEach(function (im) {
-            h += '<figure><img src="' + im.url + '" alt="' + esc(im.caption) + '"><figcaption><span>' + esc(im.caption) + '</span><a class="openbtn" href="' + im.url + '" download="' + esc(im.filename) + '">' + L("画像を保存", "Save image") + "</a></figcaption></figure>";
-          });
-          h += "</div>";
-        }
-        h += '<div class="row" style="margin-top:14px"><button type="button" id="sharePanelOpenX">' + L("Xの投稿画面を開く", "Open the X compose screen") + '</button><span class="hint">' + L("投稿文の下書き入りで開きます。画像の添付をお忘れなく", "Opens with the draft text — don't forget to attach the images") + "</span></div>";
-        panel.innerHTML = h;
-        panel.classList.remove("hidden");
-        el("sharePanelOpenX").addEventListener("click", function () { window.open(parts.intentUrl, "_blank", "noopener"); });
-        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
       function shareOnX() {
         if (!state.report) return;
         var parts = buildShareParts();
-        var btn = el("shareXBtn");
-        var orig = btn ? btn.textContent : "";
-        if (btn) { btn.disabled = true; btn.textContent = L("画像を作成中…", "Preparing images…"); }
-        collectChartImages().then(function (images) {
-          if (btn) { btn.disabled = false; btn.textContent = orig; }
-          /* 画像ファイルごと共有できる環境では共有シートを使う（Xアプリへ画像ごと渡せる） */
-          if (images.length && navigator.share && navigator.canShare) {
-            var files = [];
-            try {
-              files = images.map(function (im) { return new File([im.blob], im.filename, { type: "image/png" }); });
-            } catch (e) { files = []; }
-            var shareData = { title: "PB or Fluke?", text: parts.text + "\n" + parts.siteUrl, files: files };
-            var can = false;
-            try { can = files.length && navigator.canShare(shareData); } catch (e) { can = false; }
-            if (can) {
-              navigator.share(shareData).catch(function (err) {
-                if (err && err.name === "AbortError") return; /* ユーザーが共有をやめた場合は何もしない */
-                showSharePanel(parts, images);
-              });
-              return;
-            }
-          }
-          if (images.length) showSharePanel(parts, images);
-          else window.open(parts.intentUrl, "_blank", "noopener");
-        }).catch(function () {
-          if (btn) { btn.disabled = false; btn.textContent = orig; }
-          window.open(parts.intentUrl, "_blank", "noopener");
-        });
+        window.open(parts.intentUrl, "_blank", "noopener");
       }
 
       /* ================= 共有リンク（リンク埋め込み方式） =================
@@ -1472,8 +1374,6 @@
           } catch (e) { /* 外部フォントのCSSは読み飛ばす */ }
         }
         var clone = el("report").cloneNode(true);
-        var sp = clone.querySelector("#sharePanel");
-        if (sp) sp.remove();
         var lp = clone.querySelector("#linkPanel");
         if (lp) lp.remove();
         var html = '<!doctype html><html lang="' + (LANG === "en" ? "en" : "ja") + '"><head><meta charset="utf-8">' +
