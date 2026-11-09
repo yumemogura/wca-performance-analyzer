@@ -291,7 +291,7 @@
         </div>
         <div class="status" id="wcaStatus" role="status"></div>
         <div class="msg err" id="wcaError"></div>
-        <p class="hint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と「公式記録を取得」が押された回数だけを集計しています。入力したWCA IDや練習データは集計先に送信されません。</p>
+        <p class="hint">公式記録はWCA公式API（www.worldcubeassociation.org）から直接取得します。アップロードした練習データが外部に送られることは一切ありません。接続に失敗する場合は、Wi-Fiとモバイル回線の切り替え、広告ブロック・VPNの一時停止、別のブラウザでの再試行をお試しください。なお、利用状況の把握のため、閲覧数と「公式記録を取得」の実行・成功・エラー（形式エラー含む）の回数だけを、固定の合図で集計しています。入力したWCA IDや練習データは集計先に送信されません。</p>
 
         <div class="step-head" style="margin-top:22px"><span class="step-no">2</span><h2>練習データを読み込む（csTimer）</h2></div>
 
@@ -336,10 +336,29 @@
 
       <section id="report" class="hidden" aria-label="分析レポート"></section>
 
+      <section class="card" aria-label="利用状況の割合について">
+        <h2>利用状況の割合について</h2>
+        <p class="hint" style="margin-bottom:10px">検索がどう終わったかは、結果の種類ごとに固定の合図だけを送って数えています。割合は作成者だけが見られる GoatCounter の集計から、次のように出します。ページ自体に数値は表示されません。</p>
+        <div class="sess-wrap">
+          <table class="sess-table">
+            <thead><tr><th>区分</th><th>数え方</th><th>割合の出し方</th></tr></thead>
+            <tbody>
+              <tr><td><strong>閲覧</strong></td><td>ページが開かれた回数</td><td>—（分母）</td></tr>
+              <tr><td><strong>検索を実行</strong></td><td>「公式記録を取得」が押された回数（合図: <span class="num">search</span>）</td><td>検索実行 ÷ 閲覧</td></tr>
+              <tr><td><strong>検索が成功</strong></td><td>公式記録が取得できた回数（合図: <span class="num">search-success</span>）</td><td>成功 ÷ 検索実行</td></tr>
+              <tr><td><strong>エラーで終了</strong></td><td>見つからない／記録なし／通信失敗で終わった回数（合図: <span class="num">search-error</span>）</td><td>エラー ÷ 検索実行</td></tr>
+              <tr><td><strong>形式エラーで終了</strong></td><td>WCA IDの形式が違って実行できなかった回数（合図: <span class="num">search-invalid</span>）</td><td>形式エラー ÷ 検索実行</td></tr>
+              <tr><td><strong>開いただけで何もしなかった</strong></td><td>閲覧のうち検索を実行しなかった分（目安）</td><td>（閲覧 − 検索実行）÷ 閲覧</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="hint" style="margin-top:10px;margin-bottom:0">成功＋エラー＋形式エラーが検索実行と一致するのが目安です。「何もしなかった」は、同じ人が複数回検索したり再読み込みしたりすると多少ずれるため目安として扱います。毎日の報告では、この区分で閲覧数に対する割合と、検索実行に対する成功／エラーの割合を併記できます。</p>
+      </section>
+
       <p class="foot">
         公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
         練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />
-        利用状況の把握のため、GoatCounterで閲覧数と「公式記録を取得」の押された回数を集計しています（WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。<br />
+        利用状況の把握のため、GoatCounterで閲覧数と、検索の実行・成功・エラー・形式エラーの回数を集計しています（送るのは固定の合図だけで、WCA IDや練習データは送信されません）。集計結果は作成者だけが確認できます。各割合の出し方は上の「利用状況の割合について」をご覧ください。<br />
         作成者　ゆめもぐら
       </p>
     </main>
@@ -422,23 +441,31 @@
         });
       }
       /* ================= アクセス集計（GoatCounter） =================
-         集計するのは閲覧数と「公式記録を取得」の押下回数だけ。
+         集計するのは閲覧数と、検索の実行・成功・エラー・形式エラーの回数だけ。
+         割合は GoatCounter 側で search に対する search-success /
+         search-error / search-invalid の比率、および閲覧数に対する
+         search の比率（残りが「開いただけで何もしなかった」目安）で出す。
          入力されたWCA IDは集計先に送信しない（path/titleは固定文字列のみ）。 */
-      function trackSearch() {
+      function trackEvent(path, title) {
         try {
           if (window.goatcounter && typeof window.goatcounter.count === "function") {
-            window.goatcounter.count({ path: "search", title: "公式記録を取得", event: true });
+            window.goatcounter.count({ path: path, title: title, event: true });
           }
         } catch (e) { /* 集計の失敗で本体の処理を止めない */ }
       }
+      function trackSearch() { trackEvent("search", "公式記録を取得"); }
+      function trackSearchSuccess() { trackEvent("search-success", "検索: 成功"); }
+      function trackSearchError() { trackEvent("search-error", "検索: エラー"); }
+      function trackSearchInvalid() { trackEvent("search-invalid", "検索: 形式エラー"); }
       el("fetchBtn").addEventListener("click", function () {
         var id = el("wcaId").value.trim().toUpperCase();
         showMsg("wcaError", "");
+        trackSearch();
         if (!/^\d{4}[A-Z]{4}\d{2}$/.test(id)) {
+          trackSearchInvalid();
           showMsg("wcaError", "WCA IDの形式が正しくありません（例: 2025TAKA04）。年度4桁＋英字4文字＋数字2桁で入力してください。");
           return;
         }
-        trackSearch();
         var btn = el("fetchBtn");
         btn.disabled = true;
         el("wcaStatus").innerHTML = '<span class="spin"></span>WCAから公式記録を取得しています…';
@@ -460,6 +487,7 @@
             state.wcaId = id;
             state.results = results;
             state.comps = comps;
+            trackSearchSuccess();
             var dated = ids.filter(function (cid) { return comps[cid].start; }).length;
             el("wcaStatus").innerHTML = "";
             el("wcaStatus").textContent = "取得完了: " + (state.personName ? state.personName + " / " : "") + "大会 " + ids.length + " 件・結果 " + results.length + " 件" + (dated < ids.length ? "（うち " + (ids.length - dated) + " 大会は日程が取得できず分析対象外）" : "");
@@ -468,6 +496,7 @@
             if (state.sessions.length) generate();
           });
         }).catch(function (e) {
+          trackSearchError();
           el("wcaStatus").innerHTML = "";
           el("wcaStatus").className = "status";
           if (e.message === "notfound") showMsg("wcaError", "そのWCA IDの選手が見つかりませんでした。IDを確認してください。");
@@ -1031,7 +1060,7 @@
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       }
     </script>
-    <!-- アクセス集計: GoatCounter（閲覧数のみ自動集計。検索回数は上の trackSearch() が固定文字列のイベントで集計し、WCA IDは送らない） -->
+    <!-- アクセス集計: GoatCounter（閲覧数は自動集計。検索の実行／成功／エラー／形式エラーは上の trackEvent() が固定文字列のイベントで集計し、WCA IDは送らない） -->
     <script data-goatcounter="https://takahashi-cube.goatcounter.com/count"
             async src="https://gc.zgo.at/count.js"></script>
     <noscript><img src="https://takahashi-cube.goatcounter.com/count?p=/" alt="" /></noscript>
