@@ -81,8 +81,8 @@
         border: 1px solid var(--line);
         border-radius: var(--radius);
         box-shadow: var(--shadow);
-        padding: 26px 26px;
-        margin: 20px 0;
+        padding: 22px 22px;
+        margin: 16px 0;
       }
       #report .card:first-child { border-color: var(--line); }
       .step-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
@@ -134,11 +134,11 @@
       .drop input[type="file"] { display: none; }
       .drop label { color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
-      table { border-collapse: collapse; width: 100%; }
-      th, td { padding: 10px 12px; text-align: left; vertical-align: middle; }
+      table { border-collapse: collapse; width: 100%; font-size: 13px; }
+      th, td { padding: 5px 8px; text-align: left; vertical-align: middle; }
       thead th {
         font-family: "IBM Plex Mono", monospace;
-        font-size: 11.5px; letter-spacing: .08em; color: var(--ink2); font-weight: 700;
+        font-size: 11px; letter-spacing: .08em; color: var(--ink2); font-weight: 700;
         background: #fcfcfd;
         border-bottom: 1px solid var(--line); white-space: nowrap; text-transform: uppercase;
       }
@@ -148,7 +148,7 @@
       td.num, th.num { text-align: right; }
       .sess-table td { vertical-align: middle; }
       .sess-table select {
-        font: inherit; font-size: 13.5px; padding: 7px 8px; max-width: 180px; border-radius: 8px;
+        font: inherit; font-size: 12.5px; padding: 4px 6px; max-width: 180px; border-radius: 8px;
         border: 1px solid var(--line-strong); background: #fff; color: var(--ink);
       }
       .sess-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
@@ -156,33 +156,33 @@
       @media (max-width: 640px) { .sess-table { font-size: 13px; } .sess-table select { max-width: 132px; } }
 
       .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0 6px; border: none; background: transparent; }
-      .kpi { padding: 16px 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
-      .kpi .v { font-family: "IBM Plex Mono", monospace; font-size: 28px; font-weight: 700; line-height: 1.1; color: var(--ink); }
+      .kpi { padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+      .kpi .v { font-family: "IBM Plex Mono", monospace; font-size: 24px; font-weight: 700; line-height: 1.1; color: var(--ink); }
       .kpi:first-child .v { color: var(--accent); }
       .kpi .k { font-size: 12.5px; color: var(--ink2); font-weight: 700; letter-spacing: .02em; margin-top: 6px; line-height: 1.5; }
 
-      .verdict { display: inline-flex; align-items:center; font-weight: 700; font-size: 12.5px; letter-spacing: .01em; padding: 4px 10px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; line-height: 1.3; }
+      .verdict { display: inline-flex; align-items:center; font-weight: 700; font-size: 11.5px; letter-spacing: .01em; padding: 2px 7px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; line-height: 1.3; }
       .v2 { background: var(--v2-bg); color: var(--v2-ink); border-color: var(--v2-bg); }
       .v1 { background: var(--v1-bg); color: var(--v1-ink); border-color: #ffdcc6; }
       .v0 { background: var(--v0-bg); color: var(--v0-ink); border-color: #e5e7eb; }
       .vm1 { background: var(--vm1-bg); color: var(--vm1-ink); border-color: #bfdbfe; }
       .vm2 { background: var(--vm2-bg); color: var(--vm2-ink); border-color: var(--vm2-bg); }
       .vna { color: var(--muted); font-weight: 700; font-size: 13px; }
-      .ref { display: block; font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; margin-top: 3px; }
+      .ref { display: block; font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; margin-top: 1px; }
       .note-ref { color: #b45309; font-weight: 700; font-size: 11.5px; }
 
       /* ===== Primary: 1行1種目サマリー ===== */
       .summary-wrap { border: 1px solid var(--line); border-radius: 14px; overflow: visible; background:#fff; }
-      .summary-table th, .summary-table td { padding: 14px 16px; }
-      .summary-table thead th { background: #fcfcfd; padding: 11px 16px; }
+      .summary-table th, .summary-table td { padding: 6px 8px; }
+      .summary-table thead th { background: #fcfcfd; padding: 5px 8px; }
       .summary-table tbody td { border-bottom: 1px solid #f1f2f4; }
-      .summary-table .ev-name { font-weight: 800; font-size: 15px; color: var(--ink); white-space: nowrap; }
-      .summary-table .ev-sub { display:block; font-size: 12px; color: var(--muted); font-weight: 700; margin-top: 1px; }
-      .summary-table .score { font-family: "IBM Plex Mono", monospace; font-size: 18px; font-weight: 700; }
+      .summary-table .ev-name { font-weight: 800; font-size: 13.5px; color: var(--ink); white-space: nowrap; }
+      .summary-table .ev-sub { display:block; font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 0; }
+      .summary-table .score { font-family: "IBM Plex Mono", monospace; font-size: 15px; font-weight: 700; }
       .summary-table .score.pos { color: var(--accent); }
       .summary-table .score.neg { color: #2563eb; }
-      .dist { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-      .dist span { font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; background:#f3f4f6; border:1px solid var(--line-strong); border-radius:999px; padding:3px 8px; color:var(--ink2); white-space:nowrap; }
+      .dist { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+      .dist span { font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600; background:#f3f4f6; border:1px solid var(--line-strong); border-radius:999px; padding:2px 6px; color:var(--ink2); white-space:nowrap; }
       .dist span b { color:var(--ink); }
       .dist .up b { color: var(--accent); }
       .dist .down b { color:#2563eb; }
@@ -199,12 +199,19 @@
       .detail-details summary::-webkit-details-marker { display:none; }
       .detail-details summary::after { content:"＋ 明細を開く"; font-size:12.5px; font-weight:700; color:var(--ink2); border:1px solid var(--line-strong); border-radius:999px; padding:4px 10px; margin-left:auto; }
       .detail-details[open ] summary::after { content:"− 明細を閉じる"; }
-      .main-table td, .main-table th { white-space: nowrap; font-size:13.5px; }
+      .main-table td, .main-table th { white-space: nowrap; font-size:12.5px; }
       .main-table .comp-name { white-space: nowrap; font-weight: 600; }
       .main-table-wrap { overflow: visible; width: max-content; min-width: 100%; border:1px solid var(--line); border-radius:12px; }
       .main-table { min-width: 900px; width: max-content; }
       .main-table .ref { display: inline; margin-left: 6px; }
-      .sum-table td, .sum-table th { white-space: nowrap; }
+      .sum-table td, .sum-table th { white-space: nowrap; font-size: 12.5px; }
+      /* 期間推移: 推移グラフの下に置く単一テーブル（1行=1大会、四半期小計行も同じ表内） */
+      .period-table-wrap { overflow: visible; width: max-content; min-width: 100%; border: 1px solid var(--line); border-radius: 12px; }
+      .period-table { min-width: 760px; width: max-content; }
+      .period-table td, .period-table th { white-space: nowrap; font-size: 12.5px; }
+      .period-table .comp-name { white-space: nowrap; font-weight: 600; }
+      .period-table .q-row td { background: #f3f4f6; font-weight: 700; font-size: 12px; color: var(--ink2); border-bottom: 1px solid var(--line); white-space: normal; }
+      .period-table tbody tr.q-row:hover td { background: #f3f4f6; }
       @media (max-width: 760px) {
         .sum-table, .sum-table tbody, .sum-table tr, .sum-table td { display: block; width: 100%; }
         .sum-table thead { display: none; }
@@ -217,7 +224,7 @@
 
       .charts { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 20px 28px; align-items: start; }
       @media (max-width: 820px) { .charts { grid-template-columns: 1fr; } }
-      .chart-box { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+      .chart-box { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
       .chart-box svg { width: 100%; height: auto; display: block; }
       .chart-cap { font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 8px; line-height:1.65; }
       .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; font-weight: 500; margin: 14px 0 2px; color: var(--muted); align-items:center; }
@@ -821,22 +828,22 @@
 
         /* ===== メイン: 1行1種目サマリー ===== */
         out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>種目別明細 — 1行1種目</h2><span class="hint">全大会を通算</span></div>');
-        out.push('<p class="hint" style="margin-bottom:16px">当初のレポートと同じ表形式です。1行が1種目で、種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」（1大会1種目1行の表）で確認できます。</p>');
+        out.push('<p class="hint" style="margin-bottom:10px">当初のレポートと同じ表形式です。1行が1種目で、種目ごとに全大会分を集計しました。公式ベストは対象大会の中での最速記録、本番力スコアと総合評価は単発・平均・成功率の全評価を平均したものです。大会ごとの細かい内訳は下の「大会別明細」（1大会1種目1行の表）で確認できます。</p>');
         out.push(eventSummaryHTML(rows));
         out.push('<div class="charts" style="margin-top:20px">');
         out.push('<div class="chart-box">' + radarSVG(rows) + '<p class="chart-cap">レーダーチャート: 種目ごとの本番力スコア平均（外側ほど本番で上振れ、中心が 0＝実力通り）。</p></div>');
         out.push('<div><h3 style="margin-bottom:8px">読み方</h3><p class="hint" style="font-size:13.5px;line-height:1.85;color:#374151">スコアが <strong style="color:var(--ink)">プラス</strong> の種目は本番で練習以上の力を出せている傾向、<strong style="color:var(--ink)">マイナス</strong> の種目は本番で崩れやすい傾向です。<br>「評価の内訳」は全大会・全ラウンド分の評価セルの件数です。1つの大会×種目で単発と平均の最大2件（目隠しは成功率も含め最大3件）カウントされます。</p><p class="hint">※ 単発の期待値や練習平均との比較など、1回ごとの判定理由は大会別明細に残しています。</p></div>');
         out.push("</div></div>");
 
-        /* 期間推移 */
-        out.push('<div class="card"><h2>期間推移</h2><p class="hint" style="margin-bottom:14px">時期ごとの波を見るための集計です。こちらも種目を問わず期間でまとめています。</p><div class="charts">');
-        out.push('<div class="chart-box">' + trendSVG(rows) + '<p class="chart-cap">大会ごとの本番力スコア（その大会の全評価セルの平均）の推移。</p></div>');
-        out.push('<div>' + quarterTableHTML(rows) + "</div>");
-        out.push("</div></div>");
+        /* 期間推移（推移グラフ＋1つの表に統合） */
+        out.push('<div class="card"><h2>期間推移 — 1大会1行の表</h2><p class="hint" style="margin-bottom:10px">時期ごとの波を1つの表にまとめました。1行が1大会で日付順に並び、四半期ごとの小計も同じ表の中の行として入っています。上のグラフはこの表と同じ内容を可視化したものです。</p>');
+        out.push('<div class="chart-box" style="margin-bottom:12px">' + trendSVG(rows) + '<p class="chart-cap">大会ごとの本番力スコア（その大会の全評価セルの平均）の推移。</p></div>');
+        out.push(periodTableHTML(rows));
+        out.push("</div>");
 
         /* 大会別明細（当初の表形式・常時表示） */
         out.push('<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap"><h2>大会別明細 — 1大会1種目1行</h2><span class="hint">全 ' + rows.length + ' 行</span></div>');
-        out.push('<p class="hint" style="margin-bottom:16px">当初のレポートと同じ表形式です。1行が「1大会 × 1種目」で、日付順に並んでいます。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。</p>');
+        out.push('<p class="hint" style="margin-bottom:10px">当初のレポートと同じ表形式です。1行が「1大会 × 1種目」で、日付順に並んでいます。単発の（ ）内は「単発の期待値」、平均の（ ）内は大会前14日間の練習 ao5 の平均（mo3種目は mo3）。※参考 = 練習の有効ソルブが15未満。</p>');
         out.push('<div class="main-table-wrap"><table class="main-table"><thead><tr><th>日付</th><th>大会</th><th>種目</th><th class="num">公式単発</th><th class="num">公式平均</th><th>単発の評価（練習時）</th><th>平均の評価（練習時）</th><th>成功率の評価</th></tr></thead><tbody>');
         rows.forEach(function (r) {
           var singleDisp = r.mbfBest ? r.mbfBest.text : fmtTime(r.single, r.event);
@@ -889,23 +896,44 @@
         });
         return h + "</tbody></table>";
       }
-      function quarterTableHTML(rows) {
-        var byQ = {};
+      function periodTableHTML(rows) {
+        var byComp = {};
         rows.forEach(function (r) {
-          var d = new Date(r.date + "T00:00:00");
+          var c = byComp[r.comp] || (byComp[r.comp] = { comp: r.comp, name: r.compName, date: r.date, rows: [] });
+          c.rows.push(r);
+        });
+        var comps = Object.keys(byComp).map(function (k) { return byComp[k]; })
+          .sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+        var byQ = {};
+        comps.forEach(function (c) {
+          var d = new Date(c.date + "T00:00:00");
           var q = d.getFullYear() + "年" + (Math.floor(d.getMonth() / 3) + 1) + "Q";
-          (byQ[q] = byQ[q] || []).push(r);
+          c.quarter = q;
+          (byQ[q] = byQ[q] || []).push(c);
         });
-        var h = '<table class="sum-table"><thead><tr><th>期間（3か月）</th><th class="num">行数</th><th class="num">スコア</th><th class="num">上振れ率</th><th class="num">実力通り率</th><th class="num">下振れ率</th></tr></thead><tbody>';
-        Object.keys(byQ).sort().forEach(function (q) {
-          var rs = byQ[q], agg = aggregate(rs), t = agg.cells.total || 1;
-          h += "<tr><td>" + esc(q) + '</td><td data-l="行数" class="num">' + rs.length + '</td>' +
-            '<td data-l="スコア" class="num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + "</td>" +
-            '<td data-l="上振れ率" class="num">' + Math.round(100 * agg.cells.up / t) + '%</td>' +
-            '<td data-l="実力通り率" class="num">' + Math.round(100 * agg.cells.flat / t) + '%</td>' +
-            '<td data-l="下振れ率" class="num">' + Math.round(100 * agg.cells.down / t) + "%</td></tr>";
+        var h = '<div class="period-table-wrap"><table class="period-table"><thead><tr><th>日付</th><th>大会</th><th class="num">評価</th><th class="num">スコア</th><th>総合評価</th><th class="num">上振れ</th><th class="num">実力通り</th><th class="num">下振れ</th></tr></thead><tbody>';
+        var curQ = null;
+        comps.forEach(function (c) {
+          if (c.quarter !== curQ) {
+            curQ = c.quarter;
+            var qRows = [];
+            byQ[curQ].forEach(function (cc) { qRows = qRows.concat(cc.rows); });
+            var qAgg = aggregate(qRows), qt = qAgg.cells.total || 1;
+            h += '<tr class="q-row"><td colspan="8">' + esc(curQ) + " 小計 — スコア " + (qAgg.mean == null ? "—" : fmtScore(qAgg.mean)) + "／評価 " + qAgg.cells.total + " 件（上振れ " + Math.round(100 * qAgg.cells.up / qt) + "%・実力通り " + Math.round(100 * qAgg.cells.flat / qt) + "%・下振れ " + Math.round(100 * qAgg.cells.down / qt) + "%）</td></tr>";
+          }
+          var agg = aggregate(c.rows);
+          var ov = overallVerdict(agg.mean);
+          h += "<tr>" +
+            '<td class="num">' + esc(c.date) + "</td>" +
+            '<td class="comp-name"><a href="https://www.worldcubeassociation.org/competitions/' + esc(c.comp) + '" target="_blank" rel="noopener">' + esc(c.name) + "</a></td>" +
+            '<td class="num">' + agg.cells.total + "</td>" +
+            '<td class="num">' + (agg.mean == null ? "—" : fmtScore(agg.mean)) + "</td>" +
+            "<td>" + (ov ? '<span class="verdict ' + VCLASS[ov] + '">' + ov + "</span>" : '<span class="vna">評価なし</span>') + "</td>" +
+            '<td class="num">' + agg.cells.up + "</td>" +
+            '<td class="num">' + agg.cells.flat + "</td>" +
+            '<td class="num">' + agg.cells.down + "</td></tr>";
         });
-        return h + "</tbody></table>";
+        return h + "</tbody></table></div>";
       }
 
       /* ================= チャート（SVG） ================= */
