@@ -438,6 +438,22 @@
       var SCORES = { "大上振れ": 2, "上振れ": 1, "実力通り": 0, "下振れ": -1, "大下振れ": -2 };
       var VCLASS = { "大上振れ": "v2", "上振れ": "v1", "実力通り": "v0", "下振れ": "vm1", "大下振れ": "vm2" };
 
+      /* ================= 匿名共有の初期値 =================
+         初めて開いた人はオンが初期値。トグルを切り替えたら言語設定と
+         同じように localStorage に記憶し、次回以降は最後の選択を引き継ぐ。 */
+      var ANON_KEY = "wca-analyzer-anon-share";
+      function loadAnonPref() {
+        try {
+          var v = window.localStorage.getItem(ANON_KEY);
+          if (v === "0") return false;
+          if (v === "1") return true;
+        } catch (e) { /* 読めない場合はデフォルト（オン） */ }
+        return true;
+      }
+      function saveAnonPref(v) {
+        try { window.localStorage.setItem(ANON_KEY, v ? "1" : "0"); } catch (e) { /* 保存できなくても切替は続行 */ }
+      }
+
       var SITE_URL = "https://yumemogura.github.io/wca-performance-analyzer/";
       var state = {
         wcaId: "", personName: "", results: null, comps: null, /* comps: id -> {name,start,end} */
@@ -445,7 +461,7 @@
         csSessions: [], loadedNames: [],
         report: null,
         sharedView: false, sharedGenDate: null, shareLink: null,
-        shareLinkAnon: null, anonShare: false, anonymous: false
+        shareLinkAnon: null, anonShare: loadAnonPref(), anonymous: false
       };
 
       function el(id) { return document.getElementById(id); }
@@ -995,6 +1011,7 @@
           anonChk.checked = !!state.anonShare;
           anonChk.addEventListener("change", function () {
             state.anonShare = this.checked;
+            saveAnonPref(state.anonShare);
             /* 匿名設定と食い違う既存リンクは破棄する（X共有で誤って使われないように） */
             if (state.shareLink && state.shareLinkAnon !== state.anonShare) {
               state.shareLink = null; state.shareLinkAnon = null;
@@ -1385,7 +1402,7 @@
         state.sharedView = false;
         state.sharedGenDate = null;
         state.anonymous = false;
-        state.anonShare = false;
+        state.anonShare = loadAnonPref();
         state.shareLink = null;
         state.shareLinkAnon = null;
         state.report = null;
