@@ -238,6 +238,15 @@
       .method ul { margin: 4px 0 10px; padding-left: 1.3em; }
       .method p { color: var(--ink2); }
       .foot { color: var(--muted); font-size: 13px; font-weight: 500; margin-top: 36px; border-top: 1px solid var(--line); padding-top: 16px; line-height:1.75; }
+      .search-total {
+        display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;
+        margin-top: 18px; padding: 16px 18px;
+        background: var(--panel2); border: 1px solid var(--line); border-radius: 14px;
+      }
+      .search-total-label { font-size: 13.5px; font-weight: 700; color: var(--ink2); }
+      .search-total-num { font-size: 26px; font-weight: 700; line-height: 1.1; color: var(--accent); }
+      .search-total-unit { font-size: 13.5px; font-weight: 700; color: var(--ink2); margin-left: -6px; }
+      .search-total-detail { flex: 1 1 100%; font-size: 12.5px; font-weight: 500; color: var(--muted); line-height: 1.65; }
       .guide { border: 1px solid var(--line); background: #fcfcfd; border-radius: 12px; padding: 16px 18px; margin: 12px 0; }
       .guide h3 { margin: 0 0 6px; font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); font-weight: 900; }
       .guide ol { margin: 4px 0 6px; padding-left: 1.4em; }
@@ -376,9 +385,16 @@
       <p class="foot" id="footText">
         公式記録の出典: World Cube Association 公開API（<a href="https://www.worldcubeassociation.org/api/v0" target="_blank" rel="noopener">www.worldcubeassociation.org/api/v0</a>）。
         練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />
-        利用状況の把握のため、GoatCounterで閲覧数と、検索が成功したか失敗したかを示す合図の回数だけを集計しています。作成者が確認できるのは、閲覧数と成功・失敗の回数の合計だけです。入力内容や作成されたレポートは、作成者にも見れません。<br />
+        利用状況の把握のため、GoatCounterで閲覧数と、検索が成功したか失敗したかを示す合図の回数だけを集計しています。その検索実行回数の累計を、このページ下部に表示しています。入力内容や作成されたレポートは、作成者にも見れません。<br />
         作成者　2025TAKA04
       </p>
+
+      <div class="search-total" id="searchTotal" aria-live="polite">
+        <span class="search-total-label" id="searchTotalLabel">これまでの検索実行回数（累計）</span>
+        <span class="search-total-num num" id="searchTotalNum">—</span>
+        <span class="search-total-unit" id="searchTotalUnit">回</span>
+        <span class="search-total-detail" id="searchTotalDetail">集計を取得中…</span>
+      </div>
     </main>
     <script>
       "use strict";
@@ -513,6 +529,55 @@
       function trackSearchSuccess() { trackEvent("search-success", "検索: 成功"); }
       function trackSearchError() { trackEvent("search-error", "検索: エラー"); }
       function trackSearchInvalid() { trackEvent("search-invalid", "検索: 形式エラー"); }
+      /* ================= 検索実行回数の累計（ページ下部） =================
+         GoatCounterの公開カウンタ（/counter/<path>.json）から、検索の
+         成功・エラー・形式エラーの3つの合図の回数をページを開くたびに
+         取得し、その合計を「検索実行回数の累計」として下部に表示する。
+         取得できるのは回数だけ。失敗したときは数値を出さず、その旨を示す。 */
+      var searchTotalState = { total: null, success: null, error: null, invalid: null, failed: false };
+      function updateSearchTotalUI() {
+        var numEl = el("searchTotalNum"), labelEl = el("searchTotalLabel"),
+            unitEl = el("searchTotalUnit"), detailEl = el("searchTotalDetail");
+        if (!numEl || !detailEl) return;
+        if (labelEl) labelEl.textContent = L("これまでの検索実行回数（累計）", "Total searches so far");
+        if (unitEl) unitEl.textContent = L("回", "");
+        if (searchTotalState.total != null) {
+          numEl.textContent = searchTotalState.total.toLocaleString();
+          detailEl.textContent = L(
+            "内訳: 成功 " + searchTotalState.success.toLocaleString() + " 回／エラー " + searchTotalState.error.toLocaleString() + " 回／形式エラー " + searchTotalState.invalid.toLocaleString() + " 回（GoatCounterの集計。反映に少し時間がかかる場合があります）",
+            "Breakdown: " + searchTotalState.success.toLocaleString() + " succeeded / " + searchTotalState.error.toLocaleString() + " errors / " + searchTotalState.invalid.toLocaleString() + " invalid IDs (tallied by GoatCounter; new searches may take a little while to appear)");
+        } else if (searchTotalState.failed) {
+          numEl.textContent = "—";
+          detailEl.textContent = L("集計を取得できませんでした。", "The tally could not be loaded.");
+        } else {
+          numEl.textContent = "—";
+          detailEl.textContent = L("集計を取得中…", "Loading the tally…");
+        }
+      }
+      function loadSearchTotal() {
+        var base = "https://takahashi-cube.goatcounter.com/counter/";
+        function fetchCount(path) {
+          return fetch(base + path + ".json", { mode: "cors", credentials: "omit" }).then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+          }).then(function (j) {
+            var n = parseInt(j && j.count, 10);
+            if (!isFinite(n)) throw new Error("bad count");
+            return n;
+          });
+        }
+        Promise.all([fetchCount("search-success"), fetchCount("search-error"), fetchCount("search-invalid")]).then(function (counts) {
+          searchTotalState.success = counts[0];
+          searchTotalState.error = counts[1];
+          searchTotalState.invalid = counts[2];
+          searchTotalState.total = counts[0] + counts[1] + counts[2];
+          searchTotalState.failed = false;
+          updateSearchTotalUI();
+        }).catch(function () {
+          searchTotalState.failed = true;
+          updateSearchTotalUI();
+        });
+      }
       el("fetchBtn").addEventListener("click", function () {
         var id = el("wcaId").value.trim().toUpperCase();
         showMsg("wcaError", "");
@@ -1169,8 +1234,9 @@
         el("sessThEvent").textContent = L("対応する種目", "Mapped event");
         el("genBtn").textContent = L("レポートを作成", "Generate report");
         el("footText").innerHTML = L(
-          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索が成功したか失敗したかを示す合図の回数だけを集計しています。作成者が確認できるのは、閲覧数と成功・失敗の回数の合計だけです。入力内容や作成されたレポートは、作成者にも見れません。<br />作成者　2025TAKA04",
-          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies only page views and signals indicating whether a search succeeded or failed. The author can see only those totals. What you enter and the report that is created cannot be seen by the author.<br />Created by 2025TAKA04");
+          "公式記録の出典: World Cube Association 公開API（<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>）。練習記録はcsTimerのエクスポートファイルを使用します。本ツールはWCA非公式の個人制作ツールです。<br />利用状況の把握のため、GoatCounterで閲覧数と、検索が成功したか失敗したかを示す合図の回数だけを集計しています。その検索実行回数の累計を、このページ下部に表示しています。入力内容や作成されたレポートは、作成者にも見れません。<br />作成者　2025TAKA04",
+          "Official results source: the World Cube Association public API (<a href=\"https://www.worldcubeassociation.org/api/v0\" target=\"_blank\" rel=\"noopener\">www.worldcubeassociation.org/api/v0</a>). Practice data comes from your csTimer export file. This is an unofficial, personal tool and is not affiliated with the WCA.<br />For usage statistics, GoatCounter tallies only page views and signals indicating whether a search succeeded or failed. The cumulative number of searches is shown at the bottom of this page. What you enter and the report that is created cannot be seen by the author.<br />Created by 2025TAKA04");
+        updateSearchTotalUI();
         updateGenBtn();
         if (state.sessions.length) renderSessions();
         if (state.results && state.sessions.length) syncSessions();
@@ -1451,6 +1517,8 @@
         setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
       }
       initSharedView();
+      updateSearchTotalUI();
+      loadSearchTotal();
     </script>
     <!-- アクセス集計: GoatCounter（閲覧数は自動集計。検索については実行そのものの固定の合図は送らず、成功／失敗（形式エラー含む）を示す合図だけを上の trackEvent() で集計する。WCA IDや入力内容、作成されたレポートは送らない） -->
     <script data-goatcounter="https://takahashi-cube.goatcounter.com/count"
